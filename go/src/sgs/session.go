@@ -41,7 +41,8 @@ func (this *Session) doTick() {
 	tick := Command{
 		ID:     CMD_TICK,
 		Param:  int(dt / time.Millisecond),
-		Source: "SYS://framework",
+		Source: TARGET_SYS_FRAMEWORK,
+		Target: TARGET_SYS_APP,
 	}
 
 	this.sendCommandToApplication(tick)

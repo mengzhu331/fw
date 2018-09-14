@@ -20,7 +20,7 @@ func (this *D) d(i int) {
 
 func main() {
 	log.Println("FW Backend 1.0 started")
-	sgs.HookUpAppCreator(fwGameCreator)
+	sgs.HookUpAppCreator(FwCreator)
 	cli1, _ := sgs.Login("regn", "regn")
 	cli2, _ := sgs.Login("yaya", "regn")
 	sgs.JoinSession(cli1)

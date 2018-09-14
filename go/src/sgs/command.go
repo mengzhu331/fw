@@ -7,6 +7,11 @@ const (
 )
 
 const (
+	TARGET_SYS_FRAMEWORK string = "SYS:framework"
+	TARGET_SYS_APP       string = "SYS:app"
+)
+
+const (
 	CMD_TICK uint = CMD_TIER_FRAMEWORK_APPLICATION | 0x0001
 )
 

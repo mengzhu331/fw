@@ -2,22 +2,20 @@ package main
 
 import (
 	"sgs"
-	"strconv"
 )
 
 type playerDF struct{}
 
 type player interface {
 	getName() string
-	getURI() string
 	getDF() *playerDF
-	exec(sgs.Command) error
+	sendCommand(sgs.Command) error
 }
 
 type remotePlayer struct {
 	client *sgs.Client
 	df     playerDF
-	game   *fwGame
+	fw     *FW
 }
 
 func (this *remotePlayer) getName() string {
@@ -28,20 +26,15 @@ func (this *remotePlayer) getDF() *playerDF {
 	return &this.df
 }
 
-func (this *remotePlayer) exec(cmd sgs.Command) error {
-	if cmd.Target != this.getURI() {
+func (this *remotePlayer) sendCommand(cmd sgs.Command) error {
+	if cmd.Target != makeCommandParticipantUri(TARGET_PLAYER, this.getName()) {
 		return MakeFwErrorByCode(EC_ILLEGAL_COMMAND_TARGET)
 	}
 
-	this.game.sendCommand(sgs.Command{
+	this.fw.SendCommand(sgs.Command{
 		ID:     CMD_GAME_START_ACK,
-		Source: this.getURI(),
-		Target: this.game.getURI(),
+		Source: makeCommandParticipantUri(TARGET_PLAYER, this.getName()),
+		Target: makeCommandParticipantUri(TARGET_GAME, ""),
 	})
-	//	this.game.sendCommand(cmd)
 	return nil
-}
-
-func (this *remotePlayer) getURI() string {
-	return "PLY://" + strconv.Itoa(int(this.client.ID))
 }

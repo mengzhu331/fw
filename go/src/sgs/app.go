@@ -4,6 +4,12 @@ import (
 	"time"
 )
 
+const (
+	APP_MODE_1P int = 0x1
+	APP_MODE_2P int = 0x2
+	APP_MODE_3P int = 0x3
+)
+
 type CommandExecutor func(App, Command) error
 
 type AppConfig struct {
@@ -17,4 +23,5 @@ type AppConfig struct {
 type App interface {
 	Init(*AppConfig) error
 	GetName() string
+	GetModes() []int
 }
