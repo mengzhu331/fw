@@ -4,37 +4,45 @@ import (
 	"sgs"
 )
 
-type playerDF struct{}
-
 type player interface {
 	getName() string
 	getDF() *playerDF
-	sendCommand(sgs.Command) error
+	SendCommand(sgs.Command) error
 }
 
-type remotePlayer struct {
-	client *sgs.Client
-	df     playerDF
-	fw     *FW
+type playerDF struct {
+	name    string
+	heart   int
+	cereals int
+	gold    int
+	meat    int
+
+	woo      int
+	leather  int
+	clothe   int
+	worker   int
+	employee int
 }
 
-func (this *remotePlayer) getName() string {
-	return this.client.Username
+func (this *playerDF) apply(offset *playerDF) {
+	this.cereals += offset.cereals
+	this.clothe += offset.clothe
+	this.employee += offset.employee
+	this.gold += offset.gold
+	this.heart += offset.heart
+	this.leather += offset.leather
+	this.meat += offset.meat
+	this.woo += offset.woo
+	this.worker += offset.worker
 }
 
-func (this *remotePlayer) getDF() *playerDF {
-	return &this.df
-}
-
-func (this *remotePlayer) sendCommand(cmd sgs.Command) error {
-	if cmd.Target != makeCommandParticipantUri(TARGET_PLAYER, this.getName()) {
-		return MakeFwErrorByCode(EC_ILLEGAL_COMMAND_TARGET)
-	}
-
-	this.fw.SendCommand(sgs.Command{
-		ID:     CMD_GAME_START_ACK,
-		Source: makeCommandParticipantUri(TARGET_PLAYER, this.getName()),
-		Target: makeCommandParticipantUri(TARGET_GAME, ""),
-	})
-	return nil
+func (this *playerDF) afford(df playerDF) bool {
+	return this.cereals+df.cereals >= 0 &&
+		this.clothe+df.clothe >= 0 &&
+		this.employee+df.employee >= 0 &&
+		this.gold+df.gold >= 0 &&
+		this.heart+df.heart >= 0 &&
+		this.leather+df.leather >= 0 &&
+		this.meat+df.meat >= 0 &&
+		this.woo+df.woo >= 0
 }

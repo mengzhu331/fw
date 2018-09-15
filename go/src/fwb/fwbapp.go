@@ -5,6 +5,10 @@ import (
 	"sgs"
 )
 
+type CommandTarget interface {
+	SendCommand(sgs.Command) error
+}
+
 type FW struct {
 	conf    *sgs.AppConfig
 	game    *fwGame
@@ -80,7 +84,7 @@ func commandDispatcher(app sgs.App, command sgs.Command) error {
 	case TARGET_PLAYER:
 		pl, ok := this.pnm[name]
 		if ok {
-			return pl.sendCommand(command)
+			return pl.SendCommand(command)
 		}
 	case sgs.TARGET_SYS_APP:
 		return this.process(command)
@@ -96,8 +100,22 @@ func (this *FW) process(command sgs.Command) error {
 			return err
 		}
 		for _, p := range this.players {
-			err = p.sendCommand(command)
+			err = p.SendCommand(command)
 		}
+	} else if command.ID == CMD_GAME_END_PLAYER_NO_RESPONSE {
+		this.endGame(command.ID)
 	}
 	return err
+}
+
+func (this *FW) endGame(reason uint) {
+	for _, p := range this.players {
+		command := sgs.Command{
+			ID:     reason,
+			Source: sgs.TARGET_SYS_APP,
+			Target: TARGET_PLAYER + p.getName(),
+		}
+		p.SendCommand(command)
+	}
+	this.conf.S.Exit(reason)
 }

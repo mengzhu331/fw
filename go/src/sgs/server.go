@@ -77,5 +77,6 @@ func initNewSession() (Session, error) {
 		},
 		app:      _appCreator(),
 		cmdChOut: _cmdCh,
+		exitCh:   make(chan uint),
 	}, nil
 }

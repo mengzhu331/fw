@@ -13,6 +13,7 @@ type Session struct {
 	app          App
 	lastTickTime time.Time
 	cmdChOut     chan Command
+	exitCh       chan uint
 }
 
 func (this *Session) run() {
@@ -27,8 +28,12 @@ func (this *Session) run() {
 		select {
 		case <-time.After(time.Duration(this.appConfig.TickIntervalMs) * time.Millisecond):
 			this.doTick()
+		case r := <-this.exitCh:
+			log.Printf("Session exit, code: %x", r)
+			goto QUIT
 		}
 	}
+QUIT:
 }
 
 func (this *Session) doTick() {
@@ -72,4 +77,8 @@ func (this *Session) Exec(command Command) error {
 }
 
 func (this *Session) handleError(err error) {
+}
+
+func (this *Session) Exit(reason uint) {
+	this.exitCh <- reason
 }

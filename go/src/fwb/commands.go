@@ -5,9 +5,10 @@ import (
 )
 
 const (
-	CMD_GAME_START     uint = 0x0001
-	CMD_GAME_START_ACK uint = 0x0002
-	CMD_INIT           uint = 0x0003
+	CMD_GAME_START                  uint = 0x0001
+	CMD_GAME_START_ACK              uint = 0x0002
+	CMD_ENTER                       uint = 0x0003
+	CMD_GAME_END_PLAYER_NO_RESPONSE uint = 0x0004
 )
 
 const (
