@@ -20,7 +20,11 @@ type fwGame struct {
 	pcem map[uint]phaseMap
 	dcem map[uint]fwGameExecutor
 	lsm  map[uint64]interface{}
-	df   gameDF
+
+	sacs []actionCard
+	dacs []actionCard
+
+	df gameDF
 
 	resTimeOut int
 	timerSet   time.Time
@@ -39,6 +43,15 @@ func (this *fwGame) setTm() {
 func (this *fwGame) Init(fw IFW) error {
 	log.Println("Init FW Game")
 
+	this.sacs = []actionCard{
+		acFarm,
+		acFeedSheep,
+		acDoParttimeJob,
+		acTakeVacation,
+		acTrade,
+		acEmploy,
+	}
+
 	this.setTm()
 
 	this.fw = fw
@@ -49,6 +62,7 @@ func (this *fwGame) Init(fw IFW) error {
 	this.mapCmdExecutor(sgs.CMD_TICK, P_ROUNDS_TURNS, p_rounds_turns_tick)
 	this.mapCmdExecutor(CMD_ENTER, P_GAME_START, p_game_start_enter)
 	this.mapCmdExecutor(CMD_GAME_START_ACK, P_GAME_START, p_game_start_game_start_ack)
+	this.mapCmdExecutor(CMD_CLAIM_ACTION_CARD, P_ROUNDS_TURNS, p_rounds_turns_claim_action_card)
 
 	this.dcem[sgs.CMD_TICK] = defaultTick
 

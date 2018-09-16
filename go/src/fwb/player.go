@@ -15,8 +15,8 @@ const (
 	PD_WORKER   int = 7
 	PD_EMPLOYEE int = 8
 
-	PD_MAX_BASIC int = 7
-	PD_MAX       int = 9
+	PD_MAX_BASIC int = PD_WORKER
+	PD_MAX       int = PD_EMPLOYEE + 1
 )
 
 type playerDF [PD_MAX]int

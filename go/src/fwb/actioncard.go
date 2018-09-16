@@ -7,6 +7,7 @@ const (
 	AT_C_TRADING     int = 0x04000000
 	AT_C_FINANCING   int = 0x08000000
 	AT_C_LOTTERY     int = 0x10000000
+	AT_C_SPECIAL     int = 0x20000000
 )
 
 type actionCard struct {

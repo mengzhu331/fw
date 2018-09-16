@@ -20,6 +20,7 @@ type IFW interface {
 	SendCommand(sgs.Command) error
 	GetPlayers() []player
 	GetGame() *fwGame
+	GetPlayer(string) player
 }
 
 func FwCreator() sgs.App {
@@ -118,4 +119,8 @@ func (this *FW) endGame(reason uint) {
 		p.SendCommand(command)
 	}
 	this.conf.S.Exit(reason)
+}
+
+func (this *FW) GetPlayer(name string) player {
+	return this.pnm[name]
 }
