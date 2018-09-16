@@ -6,6 +6,7 @@ type remotePlayer struct {
 	client *sgs.Client
 	df     playerDF
 	fw     *FW
+	si     []settlementItem
 }
 
 func (this *remotePlayer) getName() string {
@@ -20,11 +21,17 @@ func (this *remotePlayer) SendCommand(cmd sgs.Command) error {
 	if cmd.Target != makeCommandParticipantUri(TARGET_PLAYER, this.getName()) {
 		return MakeFwErrorByCode(EC_ILLEGAL_COMMAND_TARGET)
 	}
-
-	this.fw.SendCommand(sgs.Command{
-		ID:     CMD_GAME_START_ACK,
-		Source: makeCommandParticipantUri(TARGET_PLAYER, this.getName()),
-		Target: makeCommandParticipantUri(TARGET_GAME, ""),
-	})
 	return nil
+}
+
+func (this *remotePlayer) setDF(df *playerDF) {
+	this.df = *df
+}
+
+func (this *remotePlayer) getSI() []settlementItem {
+	return this.si
+}
+
+func (this *remotePlayer) removeSI(i int) {
+	this.si = append(this.si[:i], this.si[i+1:]...)
 }

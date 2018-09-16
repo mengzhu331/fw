@@ -4,45 +4,64 @@ import (
 	"sgs"
 )
 
+const (
+	PD_HEART    int = 0
+	PD_GOLD     int = 1
+	PD_CEREALS  int = 2
+	PD_MEAT     int = 3
+	PD_WOO      int = 4
+	PD_LEATHER  int = 5
+	PD_JACK     int = 6
+	PD_WORKER   int = 7
+	PD_EMPLOYEE int = 8
+
+	PD_MAX_BASIC int = 7
+	PD_MAX       int = 9
+)
+
+type playerDF [PD_MAX]int
+
 type player interface {
 	getName() string
 	getDF() *playerDF
+	setDF(*playerDF)
+	getSI() []settlementItem
+	removeSI(int)
 	SendCommand(sgs.Command) error
 }
 
-type playerDF struct {
-	name    string
-	heart   int
-	cereals int
-	gold    int
-	meat    int
-
-	woo      int
-	leather  int
-	clothe   int
-	worker   int
-	employee int
-}
-
 func (this *playerDF) apply(offset *playerDF) {
-	this.cereals += offset.cereals
-	this.clothe += offset.clothe
-	this.employee += offset.employee
-	this.gold += offset.gold
-	this.heart += offset.heart
-	this.leather += offset.leather
-	this.meat += offset.meat
-	this.woo += offset.woo
-	this.worker += offset.worker
+	for i := 0; i < PD_MAX_BASIC; i++ {
+		this[i] += offset[i]
+	}
+
+	this[PD_WORKER] += offset[PD_WORKER]
+
+	if offset[PD_EMPLOYEE] < 0 {
+		this[PD_EMPLOYEE] += offset[PD_EMPLOYEE]
+		if this[PD_EMPLOYEE] < 0 {
+			this[PD_WORKER] += this[PD_EMPLOYEE]
+			this[PD_EMPLOYEE] = 0
+		}
+	} else {
+		this[PD_EMPLOYEE] += offset[PD_EMPLOYEE]
+	}
 }
 
 func (this *playerDF) afford(df playerDF) bool {
-	return this.cereals+df.cereals >= 0 &&
-		this.clothe+df.clothe >= 0 &&
-		this.employee+df.employee >= 0 &&
-		this.gold+df.gold >= 0 &&
-		this.heart+df.heart >= 0 &&
-		this.leather+df.leather >= 0 &&
-		this.meat+df.meat >= 0 &&
-		this.woo+df.woo >= 0
+	for i := 0; i < PD_MAX_BASIC; i++ {
+		if this[i]+df[i] < 0 {
+			return false
+		}
+	}
+
+	if this[PD_WORKER]+df[PD_WORKER] < 0 {
+		return false
+	}
+
+	if df[PD_EMPLOYEE]+this[PD_WORKER]+this[PD_EMPLOYEE] < 0 {
+		return false
+	}
+
+	return true
 }
