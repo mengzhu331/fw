@@ -1,5 +1,7 @@
 package server
 
+import "errors"
+
 //ServerParam parameters for the server
 type ServerParam struct {
 	CPS int
@@ -14,7 +16,13 @@ func Init(param ServerParam) {
 
 //Login log into system with user credential
 func Login(username string, password string) (int, error) {
-	return 0, nil
+	if c, found := _clients.find(username); found {
+		return c.id, nil
+	}
+	c := _clients.add(netClient{
+		username: username,
+	})
+	return c, nil
 }
 
 //JoinSession Join a game session
@@ -22,8 +30,13 @@ func JoinSession(clientID int) error {
 	return nil
 }
 
-//BindNetClient Bind a NetClient to the client ID
-func BindNetClient(clientID int, client NetClient) error {
+//BindNetConn Bind a NetConn to the client ID
+func BindNetConn(clientID int, net NetConn) error {
+	client, ok := _clients.get(clientID)
+	if !ok {
+		return errors.New("client not found")
+	}
+	client.conn = net
 	_clients.set(clientID, client)
 	return nil
 }
