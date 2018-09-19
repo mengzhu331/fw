@@ -18,13 +18,23 @@ const (
 	CMD_TICK = CMD_C_SYSTEM | (iota + 1)
 )
 
+const (
+	//CMD_TO_CLIENT app send to client
+	CMD_TO_CLIENT = CMD_C_APP | (iota + 1)
+)
+
+const (
+	//CMD_FROM_CLIENT client send to app
+	CMD_FROM_CLIENT = CMD_C_CLIENT | (iota + 1)
+)
+
 //Command common command object
 type Command struct {
 	ID    int
-	Param interface{}
+	Param map[string]interface{}
 }
 
-//TickParam parameter with tick
-type TickParam struct {
-	DeltaMs int
+//InCate if command is in category
+func (me *Command) InCate(c int) bool {
+	return (me.ID & c) == c
 }
