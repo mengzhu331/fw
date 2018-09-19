@@ -1,4 +1,4 @@
-package server
+package ssvr
 
 import (
 	"sync"
@@ -7,7 +7,13 @@ import (
 //NetConn network interface independent of protocol
 type NetConn interface {
 	Send(msg string) error
-	BindChan(ch chan string)
+	Run(ch chan string)
+}
+
+//NetClient external interface for netClient
+type NetClient interface {
+	ID() int
+	Username() string
 }
 
 type netClient struct {
@@ -16,9 +22,17 @@ type netClient struct {
 	conn     NetConn
 }
 
+func (me *netClient) ID() int {
+	return me.id
+}
+
+func (me *netClient) Username() string {
+	return me.username
+}
+
 type clientMap map[int]netClient
 
-var _clients clientMap
+var _clients = make(clientMap)
 var _clientID int = 0x8000
 
 var _cMutex = sync.Mutex{}

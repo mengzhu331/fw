@@ -1,0 +1,21 @@
+{
+    "Web":{
+        "Port": 9090,
+    
+        "EPM": {
+            "1": "/login",
+            "2": "/ws",
+            "3": "/join_game",
+            "4": "/logout"
+        },
+        
+        "WSReadBuff" : 1024,
+        
+        "WSWriteBuff": 1024
+    },
+
+    "Session":{
+        "CPS" : 3,
+        "BaseTickMs": 100
+    }
+}

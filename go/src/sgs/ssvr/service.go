@@ -1,16 +1,18 @@
-package server
+package ssvr
 
 import "errors"
 
-//ServerParam parameters for the server
-type ServerParam struct {
-	CPS int
+//SSrvParam parameters for the server
+type SSrvParam struct {
+	CPS        int
+	BaseTickMs int
+	ABF        AppBuildFunc
 }
 
-var _param ServerParam
+var _param SSrvParam
 
 //Init set server param
-func Init(param ServerParam) {
+func Init(param SSrvParam) {
 	_param = param
 }
 
@@ -69,7 +71,7 @@ func JoinSession(clientID int) error {
 		_sessions[_currentSession.ID] = _currentSession
 		_sMutex.Unlock()
 
-		go _currentSession.run()
+		go _currentSession.run(_param.BaseTickMs)
 		_currentSession = nil
 	} else if len(_currentSession.clients) > _param.CPS {
 		return errors.New("client number exceeds max allowed for session")

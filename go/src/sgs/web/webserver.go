@@ -4,27 +4,51 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"sgs/aop"
-	"sgs/server"
+	"sgs/ssvr"
 	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 )
 
-var _conf *Conf
+const (
+	//EP_MIN minimal endpoint index
+	EP_MIN = iota
+
+	//EP_LOGIN login endpoint
+	EP_LOGIN
+
+	//EP_WEBSOCKET open websocket endpoint
+	EP_WEBSOCKET
+
+	//EP_JOINSESSION join session endpoint
+	EP_JOINSESSION
+
+	//EP_MAX maximal endpoint index
+	EP_MAX
+)
+
+//EndPointMap name of endpoint
+type EndPointMap map[int]string
+
+//WebSrvParam parameter for rest/ws web server
+type WebSrvParam struct {
+	Port        int
+	EPM         EndPointMap
+	WSReadBuff  int
+	WSWriteBuff int
+}
+
+var _param WebSrvParam
 
 //StartUp start up the sgs web server
-func StartUp(conf *Conf) error {
-	_conf = conf
-	server.Init(server.ServerParam{
-		CPS: _conf.cps(),
-	})
+func StartUp(param WebSrvParam) error {
 	router := mux.NewRouter()
-	router.HandleFunc(conf.epmv(EP_LOGIN), loginRest).Methods("POST")
-	router.HandleFunc(conf.epmv(EP_JOINSESSION), joinSessionRest).Methods("POST")
-	router.HandleFunc(conf.epmv(EP_WEBSOCKET), connectWS)
-	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(conf.port()), router))
+	_param = param
+	router.HandleFunc(param.EPM[EP_LOGIN], loginRest).Methods("POST")
+	router.HandleFunc(param.EPM[EP_JOINSESSION], joinSessionRest).Methods("POST")
+	router.HandleFunc(param.EPM[EP_WEBSOCKET], connectWS)
+	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(param.Port), router))
 	return nil
 }
 
@@ -33,9 +57,6 @@ func enableCors(w *http.ResponseWriter) {
 }
 
 func loginRest(w http.ResponseWriter, r *http.Request) {
-	aop.Ib()
-	defer aop.Ie()
-
 	enableCors(&w)
 	queries := r.URL.Query()
 	un, _ := queries["username"]
@@ -47,7 +68,7 @@ func loginRest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cid, err := server.Login(un[0], pw[0])
+	cid, err := ssvr.Login(un[0], pw[0])
 
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -61,9 +82,6 @@ func loginRest(w http.ResponseWriter, r *http.Request) {
 }
 
 func joinSessionRest(w http.ResponseWriter, r *http.Request) {
-	aop.Ib()
-	defer aop.Ie()
-
 	enableCors(&w)
 	queries := r.URL.Query()
 	cid, _ := queries["clientid"]
@@ -82,7 +100,7 @@ func joinSessionRest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = server.JoinSession(cidi)
+	err = ssvr.JoinSession(cidi)
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -94,9 +112,6 @@ func joinSessionRest(w http.ResponseWriter, r *http.Request) {
 }
 
 func connectWS(w http.ResponseWriter, r *http.Request) {
-	aop.Ib()
-	defer aop.Ie()
-
 	enableCors(&w)
 	queries := r.URL.Query()
 	cid, _ := queries["clientid"]
@@ -120,7 +135,7 @@ func connectWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	server.BindNetClient(cidi, &wsClient{
+	ssvr.BindNetConn(cidi, &wsConn{
 		conn: conn,
 	})
 
@@ -129,8 +144,8 @@ func connectWS(w http.ResponseWriter, r *http.Request) {
 
 func makeWSConnection(w http.ResponseWriter, r *http.Request) (*websocket.Conn, error) {
 	upgrader := websocket.Upgrader{
-		ReadBufferSize:  _conf.wsReadBuff(),
-		WriteBufferSize: _conf.wsWriteBuff(),
+		ReadBufferSize:  _param.WSReadBuff,
+		WriteBufferSize: _param.WSWriteBuff,
 		CheckOrigin:     func(*http.Request) bool { return true },
 	}
 
