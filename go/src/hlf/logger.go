@@ -15,21 +15,6 @@ type Logger interface {
 	Trc(string, ...interface{})
 }
 
-func (me *logger) loadConf() {
-	id := me.id
-	if id == "" {
-		id = "_"
-	}
-	conf, found := _conf[id]
-	if found {
-		me.conf = conf
-	} else if me.parent != nil {
-		me.conf = me.parent.conf
-	} else {
-		me.conf = _defaultConf
-	}
-}
-
 //CreateLogger init a logger
 func CreateLogger(id string, parent Logger) Logger {
 	lg := logger{
@@ -60,6 +45,21 @@ type logger struct {
 	parent *logger
 }
 
+func (me *logger) loadConf() {
+	id := me.id
+	if id == "" {
+		id = "_"
+	}
+	conf, found := _conf[id]
+	if found {
+		me.conf = conf
+	} else if me.parent != nil {
+		me.conf = me.parent.conf
+	} else {
+		me.conf = _defaultLogConf
+	}
+}
+
 func (me *logger) Ntf(format string, a ...interface{}) {
 	me.print(LvNotification, format, a...)
 }
@@ -85,78 +85,92 @@ func (me *logger) Trc(format string, a ...interface{}) {
 }
 
 func (me *logger) print(lv logLevel, format string, a ...interface{}) {
-	text := formati(nil, me, lv, format, a...)
+	text := me.formati(nil, lv, format, a...)
 	if me.conf.ToConsole {
-		sendToSrv("console:", text)
+		me.send2console(text)
 	}
 
 	if me.conf.ToFile {
 		if me.conf.Lv >= lv {
-			sendToSrv(getConsoleFileTarget(me), text)
-			if LvError >= lv {
-				sendToSrv(getErrorFileTarget(me), text)
-			}
+			text = me.formati(me, lv, format, a...)
+			me.send2file(text, lv)
 		}
 
-		log := me.parent
-		nc := me
-		for log != nil {
-			clv, found := log.conf.ChildLv[nc.id]
-			if !found {
-				clv = log.conf.DefaultChildLv
-			}
-
+		for log := me.parent; log != nil; log = log.parent {
+			clv := me.findAppliedLv(log)
 			if clv >= lv {
-				text := formati(log, me, lv, format, a...)
-				sendToSrv(getConsoleFileTarget(log), text)
-				if LvError >= lv {
-					sendToSrv(getErrorFileTarget(log), text)
-				}
+				text := me.formati(log, lv, format, a...)
+				log.send2file(text, lv)
 			}
-
-			log = log.parent
-			nc = log
 		}
 	}
 }
 
-func sendToSrv(target string, text string) {
+func (me *logger) findAppliedLv(ancestor *logger) logLevel {
+	var lv logLevel = LvUnknown
+	found := false
+
+	for log := me; log != ancestor && log.parent != nil; log = log.parent {
+		lv, found = ancestor.conf.ChildLv[log.id]
+		if found {
+			break
+		}
+	}
+
+	if !found {
+		lv = ancestor.conf.DefaultChildLv
+	}
+
+	return lv
+}
+
+func (me *logger) send2console(text string) {
+	me.send2Srv("console:", text)
+}
+
+func (me *logger) send2file(text string, lv logLevel) {
+	me.send2Srv(me.getConsoleFileTarget(), text)
+	if LvError >= lv {
+		me.send2Srv(me.getErrorFileTarget(), text)
+	}
+}
+
+func (me *logger) send2Srv(target string, text string) {
 	li := logItem{
 		target: target,
 		text:   text,
 	}
-	_ch <- li
+	_logSrvCh <- li
 }
 
 func (me *logger) toPrefix() string {
 	if me.id == "" {
-		return ""
+		return " "
 	}
-	return "[" + me.id + "]"
+	return "[" + me.id + "] "
 }
 
-func formati(parent *logger, log *logger, lv logLevel, format string, a ...interface{}) string {
+func (me *logger) formati(parent *logger, lv logLevel, format string, a ...interface{}) string {
 	text := ""
 	text += lv.toPrefix()
 	text += logTime()
-	text += log.toPrefix()
-	text += indent(parent, log)
+	text += me.indent(parent)
+	text += me.toPrefix()
 	text += fmt.Sprintf(format, a...)
 	text += "\n"
 	return text
 }
 
-func getIndent(parent *logger, log *logger) int {
+func (me *logger) getIndent(parent *logger) int {
 	indent := 0
-	for log != parent && log != nil {
+	for log := me; log != parent && log.parent != nil; log = log.parent {
 		indent += _logSysConf.Indent
-		log = log.parent
 	}
 	return indent
 }
 
-func indent(parent *logger, log *logger) string {
-	indent := getIndent(parent, log)
+func (me *logger) indent(parent *logger) string {
+	indent := me.getIndent(parent)
 	indents := ""
 	for i := 0; i < indent; i++ {
 		indents += " "
@@ -164,13 +178,9 @@ func indent(parent *logger, log *logger) string {
 	return indents
 }
 
-func logTime() string {
-	return "[" + time.Now().Format(time.RFC3339) + "]"
-}
-
-func getPath(log *logger) string {
+func (me *logger) getPath() string {
 	path := ""
-	for l := log; l != nil; l = l.parent {
+	for l := me; l != nil; l = l.parent {
 		if l.id != "" {
 			path = l.id + "/" + path
 		}
@@ -179,10 +189,14 @@ func getPath(log *logger) string {
 	return path
 }
 
-func getConsoleFileTarget(log *logger) string {
-	return "file:" + getPath(log) + "console.log"
+func (me *logger) getConsoleFileTarget() string {
+	return "file:" + me.getPath() + "console.log"
 }
 
-func getErrorFileTarget(log *logger) string {
-	return "file:" + getPath(log) + "error.log"
+func (me *logger) getErrorFileTarget() string {
+	return "file:" + me.getPath() + "error.log"
+}
+
+func logTime() string {
+	return "[" + time.Now().Format(time.RFC3339) + "]"
 }

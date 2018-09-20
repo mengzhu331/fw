@@ -18,7 +18,7 @@ type Conf struct {
 	ChildLv        lvMap
 }
 
-var _defaultConf = Conf{
+var _defaultLogConf = Conf{
 	ToFile:         true,
 	ToConsole:      true,
 	Lv:             LvInfo,
@@ -39,20 +39,11 @@ var _logSysConf = LogSysConf{
 	Indent:  2,
 }
 
-func loadLogConf(fsys string, f string) bool {
-	loadError := loadConfFile(fsys, &_logSysConf) != nil
-	loadError = (loadConfFile(f, &_conf) != nil) || loadError
-	return !loadError
-}
-
 func loadConfFile(f string, conf interface{}) error {
 	c, err := ioutil.ReadFile(f)
 	if err != nil {
-		panic(err.Error())
+		return err
 	}
 	err = json.Unmarshal(c, conf)
-	if err != nil {
-		panic(err.Error())
-	}
 	return err
 }

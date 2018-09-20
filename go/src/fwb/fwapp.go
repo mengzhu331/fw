@@ -1,6 +1,8 @@
 package main
 
-import "sgs/ssvr"
+import (
+	"sgs/ssvr"
+)
 
 type fwApp struct{}
 

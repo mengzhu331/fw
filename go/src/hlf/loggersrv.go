@@ -22,50 +22,62 @@ type logItem struct {
 	text   string
 }
 
-var _ch = make(chan logItem)
+var _logSrvCh = make(chan logItem)
 
-var _srvRunning = false
+var _logRoot string
 
-var _logRoot = "./log/"
-
-//Init turn on server
 func init() {
-	loadLogConf(SysConfFile, LogConfFile)
-	dirCache := make(map[string]time.Time)
-	t := time.Now()
-	_logRoot += t.Format(time.RFC3339) + "/"
+	//load settings
+	err := loadConfFile(SysConfFile, &_logSysConf)
 
-	go run(dirCache)
+	if err != nil {
+		fmt.Println("[Warning][HLF] Failed to load settings: " + SysConfFile + " " + err.Error())
+	}
+
+	err = loadConfFile(LogConfFile, &_conf)
+	if err != nil {
+		fmt.Println("[Warning][HLF] Failed to load settings: " + LogConfFile + " " + err.Error())
+	}
+
+	//create root directory for the log session
+	_logRoot = generateLogRoot()
+
+	//turn server on
+	go run()
 }
 
-func run(dirCache map[string]time.Time) {
-	_srvRunning = true
+func generateLogRoot() string {
+	t := time.Now()
+	logRoot := _logSysConf.LogRoot + t.Format(time.RFC3339) + "/"
+	logRoot = strings.Replace(logRoot, "-", "", -1)
+	logRoot = strings.Replace(logRoot, ":", "", -1)
+	logRoot = strings.Replace(logRoot, "+", "", -1)
+	return logRoot
+}
 
+func run() {
 	for {
 		select {
-		case li := <-_ch:
+		case li := <-_logSrvCh:
 			if li.target[:8] == "console:" {
-				printc(li.text)
+				send2c(li.text)
 			} else if li.target[:5] == "file:" {
 				path := li.target[5:]
-				printf(&dirCache, path, li.text)
+				send2f(path, li.text)
 			}
 		}
 	}
 }
 
-func printc(text string) {
+func send2c(text string) {
 	fmt.Printf(text)
 }
 
-func printf(dc *map[string]time.Time, path string, text string) {
-	_, found := (*dc)[path]
-	if !found {
-		c := strings.Split(path, "/")
-		if len(c) > 1 {
-			d := path[:len(path)-len(c[len(c)-1])-1]
-			os.MkdirAll(d, 0700)
-		}
+func send2f(path string, text string) {
+	c := strings.Split(path, "/")
+	if len(c) > 1 {
+		d := path[:len(path)-len(c[len(c)-1])-1]
+		os.MkdirAll(d, 0700)
 	}
 
 	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0600)
@@ -75,8 +87,6 @@ func printf(dc *map[string]time.Time, path string, text string) {
 	} else if os.IsNotExist(err) {
 		err = ioutil.WriteFile(path, []byte(text), 0700)
 	} else if err != nil {
-		printc(text + "[FCF]")
+		send2c(text + "[FCF]")
 	}
-
-	(*dc)[path] = time.Now()
 }
