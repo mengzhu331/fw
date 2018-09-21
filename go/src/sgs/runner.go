@@ -7,7 +7,7 @@ import (
 
 //Run turn on the sgs servers
 func Run(abf ssvr.AppBuildFunc) {
-	c := LoadConf("./conf.json")
+	c := LoadConf("./sgs.conf")
 	ssvr.Init(ssvr.SSrvParam{
 		CPS:        c.Session.CPS,
 		BaseTickMs: c.Session.BaseTickMs,
