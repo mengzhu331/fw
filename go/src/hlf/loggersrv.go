@@ -9,12 +9,7 @@ import (
 )
 
 const (
-
-	//SysConfFile log system parameter file
-	SysConfFile = "logsys.conf"
-
-	//LogConfFile loggers parameter file
-	LogConfFile = "logs.conf"
+	_ConfFile = "hlf.conf"
 )
 
 type logItem struct {
@@ -28,15 +23,10 @@ var _logRoot string
 
 func init() {
 	//load settings
-	err := loadConfFile(SysConfFile, &_logSysConf)
+	err := loadConfFile(_ConfFile, &_conf)
 
 	if err != nil {
-		fmt.Println("[Warning][HLF] Failed to load settings: " + SysConfFile + " " + err.Error())
-	}
-
-	err = loadConfFile(LogConfFile, &_conf)
-	if err != nil {
-		fmt.Println("[Warning][HLF] Failed to load settings: " + LogConfFile + " " + err.Error())
+		fmt.Println("[Warning][HLF] Failed to load settings: " + _ConfFile + " " + err.Error())
 	}
 
 	//create root directory for the log session
@@ -48,7 +38,7 @@ func init() {
 
 func generateLogRoot() string {
 	t := time.Now()
-	logRoot := _logSysConf.LogRoot + t.Format(time.RFC3339) + "/"
+	logRoot := _conf.LogRoot + t.Format(time.RFC3339) + "/"
 	logRoot = strings.Replace(logRoot, "-", "", -1)
 	logRoot = strings.Replace(logRoot, ":", "", -1)
 	logRoot = strings.Replace(logRoot, "+", "", -1)

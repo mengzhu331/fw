@@ -19,7 +19,7 @@ type Logger interface {
 
 func createLogger(id string, target string, parent Logger) Logger {
 	if target == "" {
-		target = _logSysConf.DefaultFile
+		target = _conf.DefaultFile
 	}
 
 	lg := logger{
@@ -42,7 +42,7 @@ func CreateLogger(id string) Logger {
 
 type logger struct {
 	id     string
-	conf   Conf
+	conf   LoggerConf
 	parent *logger
 	target string
 }
@@ -52,7 +52,7 @@ func (me *logger) loadConf() {
 	if id == "" {
 		id = "_"
 	}
-	conf, found := _conf[id]
+	conf, found := _conf.Loggers[id]
 	if found {
 		me.conf = conf
 	} else if me.parent != nil {
@@ -171,7 +171,7 @@ func (me *logger) formati(parent *logger, lv logLevel, format string, a ...inter
 func (me *logger) getIndent(parent *logger) int {
 	indent := 0
 	for log := me; log != parent && log.parent != nil; log = log.parent {
-		indent += _logSysConf.Indent
+		indent += _conf.Indent
 	}
 	return indent
 }

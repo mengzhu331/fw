@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"hlf"
 	"runtime"
+	"strconv"
 )
 
 //Err error data
 type Err struct {
-	code      int32
-	callStack []string
-	info      string
+	code       int32
+	callStack  []string
+	stackDepth int
+	info       string
 }
 
 func (me *Err) Error() string {
@@ -27,15 +29,24 @@ func (me *Err) DumpCallStack(lv int) string {
 	callstack := me.callStack[:lv]
 
 	for i := 0; i < len(callstack); i++ {
-		ds += callstack[i] + "\n"
+		ds += callstack[i]
+		if i != len(callstack)-1 {
+			ds += " by:\n"
+		}
 	}
+
+	if len(callstack) < me.stackDepth {
+		ds += "by:\n"
+		ds += "  ..." + strconv.Itoa(me.stackDepth-len(callstack)) + " more"
+	}
+
 	return ds
 }
 
 //EInfo map for info entries
 type EInfo map[string]interface{}
 
-var _maxCallStackFrames = 10
+var _maxCallStackFrames = 100
 
 //Throw init an Err
 func Throw(code int32, info EInfo) Err {
@@ -51,15 +62,20 @@ func Throw(code int32, info EInfo) Err {
 
 	callstack := make([]string, 0)
 
-	for frame, next := frames.Next(); next; frame, next = frames.Next() {
-		framefootprint := fmt.Sprintf("  [%v(), line %v] called, in [%v], by:", frame.Function, frame.Line, frame.File)
+	for {
+		frame, next := frames.Next()
+		framefootprint := fmt.Sprintf("  [%v(), line %v] called, in [%v]", frame.Function, frame.Line, frame.File)
 		callstack = append(callstack, framefootprint)
+		if !next {
+			break
+		}
 	}
 
 	return Err{
-		code:      code,
-		callStack: callstack,
-		info:      string(errinfo),
+		code:       code,
+		callStack:  callstack,
+		stackDepth: n - 1,
+		info:       string(errinfo),
 	}
 }
 

@@ -7,10 +7,19 @@ import (
 
 type lvMap map[string]logLevel
 
-type confMap map[string]Conf
+type confMap map[string]LoggerConf
 
-//Conf logger settings
+//Conf framework settings
 type Conf struct {
+	LogRoot     string
+	Indent      int
+	DefaultFile string
+
+	Loggers confMap
+}
+
+//LoggerConf logger settings
+type LoggerConf struct {
 	ToFile         bool
 	ToConsole      bool
 	Lv             logLevel
@@ -18,7 +27,7 @@ type Conf struct {
 	ChildLv        lvMap
 }
 
-var _defaultLogConf = Conf{
+var _defaultLogConf = LoggerConf{
 	ToFile:         true,
 	ToConsole:      true,
 	Lv:             LvInfo,
@@ -26,19 +35,12 @@ var _defaultLogConf = Conf{
 	ChildLv:        make(lvMap),
 }
 
-var _conf = make(confMap)
-
-//LogSysConf log system settings
-type LogSysConf struct {
-	LogRoot     string
-	Indent      int
-	DefaultFile string
-}
-
-var _logSysConf = LogSysConf{
+var _conf = Conf{
 	LogRoot:     "./log/",
 	Indent:      2,
 	DefaultFile: "console.log",
+
+	Loggers: make(confMap),
 }
 
 func loadConfFile(f string, conf interface{}) error {
