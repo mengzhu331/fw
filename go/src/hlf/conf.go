@@ -30,13 +30,15 @@ var _conf = make(confMap)
 
 //LogSysConf log system settings
 type LogSysConf struct {
-	LogRoot string
-	Indent  int
+	LogRoot     string
+	Indent      int
+	DefaultFile string
 }
 
 var _logSysConf = LogSysConf{
-	LogRoot: "./log/",
-	Indent:  2,
+	LogRoot:     "./log/",
+	Indent:      2,
+	DefaultFile: "console.log",
 }
 
 func loadConfFile(f string, conf interface{}) error {

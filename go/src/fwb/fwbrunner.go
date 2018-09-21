@@ -1,15 +1,24 @@
 package main
 
 import (
+	"err"
 	"hlf"
 	"time"
 )
 
+const (
+	_ETest = err.ImptRecoverable | err.ETInternal | 0x1
+)
+
 func main() {
-	log0 := hlf.CreateLogger("", nil)
-	log1 := hlf.CreateLogger("sys", nil)
-	log2 := hlf.CreateLogger("module", log1)
-	log3 := hlf.CreateLogger("function", log2)
+
+	log0 := hlf.CreateLogger("")
+	log1 := hlf.CreateLogger("sys")
+	log2 := log1.Child("module")
+	log3 := log2.Child("function")
+
+	e := err.Throw(_ETest, err.EInfo{"param": "ok"})
+	e.To(log3)
 
 	log0.Err("default logger error")
 	log1.Err("sys logger error")

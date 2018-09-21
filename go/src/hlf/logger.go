@@ -7,6 +7,8 @@ import (
 
 //Logger log mechanism interface
 type Logger interface {
+	Child(string) Logger
+	To(string) Logger
 	Ntf(string, ...interface{})
 	Inf(string, ...interface{})
 	Err(string, ...interface{})
@@ -15,10 +17,14 @@ type Logger interface {
 	Trc(string, ...interface{})
 }
 
-//CreateLogger init a logger
-func CreateLogger(id string, parent Logger) Logger {
+func createLogger(id string, target string, parent Logger) Logger {
+	if target == "" {
+		target = _logSysConf.DefaultFile
+	}
+
 	lg := logger{
-		id: id,
+		id:     id,
+		target: target,
 	}
 	var islogger bool
 	lg.parent, islogger = parent.(*logger)
@@ -29,20 +35,16 @@ func CreateLogger(id string, parent Logger) Logger {
 	return &lg
 }
 
-//CreateRootLogger init a logger
-func CreateRootLogger(id string) Logger {
-	return CreateLogger(id, nil)
-}
-
-//CreateDefaultLogger init a logger
-func CreateDefaultLogger() Logger {
-	return CreateLogger("", nil)
+//CreateLogger init a logger
+func CreateLogger(id string) Logger {
+	return createLogger(id, "", nil)
 }
 
 type logger struct {
 	id     string
 	conf   Conf
 	parent *logger
+	target string
 }
 
 func (me *logger) loadConf() {
@@ -58,6 +60,14 @@ func (me *logger) loadConf() {
 	} else {
 		me.conf = _defaultLogConf
 	}
+}
+
+func (me *logger) Child(id string) Logger {
+	return createLogger(id, "", me)
+}
+
+func (me *logger) To(target string) Logger {
+	return createLogger(me.id, target, me.parent)
 }
 
 func (me *logger) Ntf(format string, a ...interface{}) {
@@ -93,14 +103,14 @@ func (me *logger) print(lv logLevel, format string, a ...interface{}) {
 	if me.conf.ToFile {
 		if me.conf.Lv >= lv {
 			text = me.formati(me, lv, format, a...)
-			me.send2file(text, lv)
+			me.send2file(me.target, text)
 		}
 
 		for log := me.parent; log != nil; log = log.parent {
 			clv := me.findAppliedLv(log)
 			if clv >= lv {
 				text := me.formati(log, lv, format, a...)
-				log.send2file(text, lv)
+				log.send2file(me.target, text)
 			}
 		}
 	}
@@ -128,11 +138,8 @@ func (me *logger) send2console(text string) {
 	me.send2Srv("console:", text)
 }
 
-func (me *logger) send2file(text string, lv logLevel) {
-	me.send2Srv(me.getConsoleFileTarget(), text)
-	if LvError >= lv {
-		me.send2Srv(me.getErrorFileTarget(), text)
-	}
+func (me *logger) send2file(target string, text string) {
+	me.send2Srv(me.getFileTarget(target), text)
 }
 
 func (me *logger) send2Srv(target string, text string) {
@@ -189,12 +196,8 @@ func (me *logger) getPath() string {
 	return path
 }
 
-func (me *logger) getConsoleFileTarget() string {
-	return "file:" + me.getPath() + "console.log"
-}
-
-func (me *logger) getErrorFileTarget() string {
-	return "file:" + me.getPath() + "error.log"
+func (me *logger) getFileTarget(f string) string {
+	return "file:" + me.getPath() + f
 }
 
 func logTime() string {
