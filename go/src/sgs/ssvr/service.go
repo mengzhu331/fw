@@ -1,6 +1,9 @@
 package ssvr
 
-import "errors"
+import (
+	"errors"
+	"hlf"
+)
 
 //SSrvParam parameters for the server
 type SSrvParam struct {
@@ -11,9 +14,14 @@ type SSrvParam struct {
 
 var _param SSrvParam
 
+var _log = hlf.CreateLogger("SSVR")
+
 //Init set server param
-func Init(param SSrvParam) {
+func Init(param SSrvParam) error {
+	_log.Inf("Starting SSVR...")
 	_param = param
+	_log.Inf("SSVR started")
+	return nil
 }
 
 //Login log into system with user credential

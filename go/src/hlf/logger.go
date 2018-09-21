@@ -37,7 +37,7 @@ func createLogger(id string, target string, parent Logger) Logger {
 
 //CreateLogger init a logger
 func CreateLogger(id string) Logger {
-	return createLogger(id, "", nil)
+	return createLogger(id, "", _defaultLogger)
 }
 
 type logger struct {

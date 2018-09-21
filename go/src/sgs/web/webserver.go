@@ -2,13 +2,19 @@ package web
 
 import (
 	"encoding/json"
-	"log"
+	"er"
+	"hlf"
 	"net/http"
 	"sgs/ssvr"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
+)
+
+const (
+	_EFailedToStartWebServer = er.ImptUnrecoverable | er.ETConsumeService | 0x1
 )
 
 const (
@@ -31,6 +37,21 @@ const (
 //EndPointMap name of endpoint
 type EndPointMap map[int]string
 
+func (me *EndPointMap) toString() string {
+	es := "("
+	first := true
+	for _, v := range *me {
+		if !first {
+			es += ", "
+		}
+		es += v
+		first = false
+	}
+	es += ")"
+
+	return es
+}
+
 //WebSrvParam parameter for rest/ws web server
 type WebSrvParam struct {
 	Port        int
@@ -41,14 +62,40 @@ type WebSrvParam struct {
 
 var _param WebSrvParam
 
+var _log = hlf.CreateLogger("SGS Web Server")
+
+var _ech = make(chan string)
+
 //StartUp start up the sgs web server
 func StartUp(param WebSrvParam) error {
+	_log.Inf("Starting SGS Web Server...")
 	router := mux.NewRouter()
 	_param = param
+
+	_log.Ntf("SGS Web Server Params: Port %v, Endpoints %v", _param.Port, _param.EPM.toString())
+
 	router.HandleFunc(param.EPM[EP_LOGIN], loginRest).Methods("POST")
 	router.HandleFunc(param.EPM[EP_JOINSESSION], joinSessionRest).Methods("POST")
 	router.HandleFunc(param.EPM[EP_WEBSOCKET], connectWS)
-	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(param.Port), router))
+	go func() {
+		err := http.ListenAndServe(":"+strconv.Itoa(param.Port), router)
+		if err != nil {
+			_ech <- err.Error()
+		}
+	}()
+
+	select {
+	case es := <-_ech:
+		{
+			e := er.Throw(_EFailedToStartWebServer, er.EInfo{"Fail info": es})
+			e.To(_log)
+			return e
+		}
+	case <-time.After(time.Duration(1) * time.Second):
+		{
+			_log.Inf("SGS Web Server started")
+		}
+	}
 	return nil
 }
 

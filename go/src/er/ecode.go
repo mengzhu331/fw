@@ -1,4 +1,4 @@
-package err
+package er
 
 const (
 	//ImptAcceptible the error is a sensible variation of normal situation
@@ -27,6 +27,9 @@ const (
 
 	//ETInteraction error from systems interaction
 	ETInteraction
+
+	//ETConsumeService failed to consume service
+	ETConsumeService
 )
 
 const (

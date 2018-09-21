@@ -1,4 +1,4 @@
-package err
+package er
 
 import (
 	"encoding/json"
@@ -49,7 +49,7 @@ type EInfo map[string]interface{}
 var _maxCallStackFrames = 100
 
 //Throw init an Err
-func Throw(code int32, info EInfo) Err {
+func Throw(code int32, info EInfo) *Err {
 	errinfo, _ := json.Marshal(info)
 
 	pc := make([]uintptr, _maxCallStackFrames)
@@ -71,7 +71,7 @@ func Throw(code int32, info EInfo) Err {
 		}
 	}
 
-	return Err{
+	return &Err{
 		code:       code,
 		callStack:  callstack,
 		stackDepth: n - 1,

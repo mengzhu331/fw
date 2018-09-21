@@ -21,6 +21,8 @@ var _logSrvCh = make(chan logItem)
 
 var _logRoot string
 
+var _defaultLogger Logger
+
 func init() {
 	//load settings
 	err := loadConfFile(_ConfFile, &_conf)
@@ -31,6 +33,8 @@ func init() {
 
 	//create root directory for the log session
 	_logRoot = generateLogRoot()
+
+	_defaultLogger = CreateLogger("")
 
 	//turn server on
 	go run()
