@@ -1,6 +1,7 @@
 package main
 
 import (
+	"er"
 	"sgs/ssvr"
 )
 
@@ -10,10 +11,10 @@ func fwAppBuildFunc() ssvr.App {
 	return &fwApp{}
 }
 
-func (me *fwApp) Init(c chan string, clients []ssvr.NetClient) error {
+func (me *fwApp) Init(s ssvr.Session, clients []ssvr.NetClient) *er.Err {
 	return nil
 }
 
-func (me *fwApp) SendCommand(command ssvr.Command) error {
+func (me *fwApp) SendCommand(command ssvr.Command) *er.Err {
 	return nil
 }

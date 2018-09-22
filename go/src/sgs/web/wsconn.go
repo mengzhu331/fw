@@ -12,12 +12,12 @@ type wsConn struct {
 	conn     *websocket.Conn
 }
 
-func (me *wsConn) Send(msg []byte]) error {
+func (me *wsConn) Send(msg []byte) error {
 	_log.Dbg("WS send message: %v", msg)
 	return me.conn.WriteMessage(websocket.TextMessage, msg)
 }
 
-func (me *wsConn) Run(ch chan string) {
+func (me *wsConn) Run(ch chan []byte) {
 	_log.Inf("WS listening to client: %v", me.clientId)
 	for {
 		_, message, err := me.conn.ReadMessage()
@@ -31,7 +31,7 @@ func (me *wsConn) Run(ch chan string) {
 			Payload: message,
 		})
 
-		ch <- string(message)
+		ch <- message
 
 	}
 	me.conn.Close()
