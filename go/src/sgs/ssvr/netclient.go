@@ -6,8 +6,9 @@ import (
 
 //NetConn network interface independent of protocol
 type NetConn interface {
-	Send(msg string) error
-	Run(ch chan string)
+	Send(msg []byte) error
+	Run(ch chan []byte)
+	BindClientID(clientID int)
 }
 
 //NetClient external interface for netClient

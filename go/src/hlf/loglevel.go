@@ -3,43 +3,43 @@ package hlf
 type logLevel int
 
 const (
-	//LvUnknown log level is unknown
-	LvUnknown = 0
+	//_LV_UNKNOWN log level is unknown
+	_LV_UNKNOWN = 0
 
-	//LvError log level for errors
-	LvError = iota * 10
+	//_LV_ERROR log level for errors
+	_LV_ERROR = iota * 10
 
-	//LvWarning log level for warnings
-	LvWarning
+	//_LV_WARNING log level for warnings
+	_LV_WARNING
 
-	//LvNotification log level for notificaitons
-	LvNotification
+	//_LV_NOTIFICATION log level for notificaitons
+	_LV_NOTIFICATION
 
-	//LvInfo log level for information
-	LvInfo
+	//_LV_INFO log level for information
+	_LV_INFO
 
-	//LvDebug log level for debug information
-	LvDebug
+	//_LV_DEBUG log level for debug information
+	_LV_DEBUG
 
 	//LvTrace log level for trace information
-	LvTrace
+	_LV_TRACE
 )
 
 func (me *logLevel) toPrefix() string {
 	switch *me {
-	case LvUnknown:
+	case _LV_UNKNOWN:
 		return "[Unknown]"
-	case LvError:
+	case _LV_ERROR:
 		return "[Error  ]"
-	case LvWarning:
+	case _LV_WARNING:
 		return "[Warning]"
-	case LvNotification:
+	case _LV_NOTIFICATION:
 		return "[Note   ]"
-	case LvInfo:
+	case _LV_INFO:
 		return "[Info   ]"
-	case LvDebug:
+	case _LV_DEBUG:
 		return "[Debug  ]"
-	case LvTrace:
+	case _LV_TRACE:
 		return "[Trace  ]"
 	}
 	return "[Unknown]"

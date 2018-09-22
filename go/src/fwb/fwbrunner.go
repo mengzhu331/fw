@@ -5,16 +5,17 @@ import (
 	"sgs"
 )
 
-var _log hlf.Logger = hlf.CreateLogger("FWB")
+var _log hlf.Logger = hlf.MakeLogger("FWB")
 
 var _ch = make(chan string)
 
 func main() {
-	_log.Inf("FWB starting up")
+	_log.Ntf("FWB starting up...")
 	e := sgs.Run(fwAppBuildFunc)
-
 	if e == nil {
 		var c string
+
+		_log.Ntf("FWB started, available for client connections")
 
 		for c != "quit" {
 			select {

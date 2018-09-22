@@ -7,19 +7,18 @@ import (
 
 type lvMap map[string]logLevel
 
-type confMap map[string]LoggerConf
+type confMap map[string]loggerConf
 
-//Conf framework settings
-type Conf struct {
+//conf framework settings
+type conf struct {
 	LogRoot     string
 	Indent      int
 	DefaultFile string
-
-	Loggers confMap
+	Loggers     confMap
 }
 
-//LoggerConf logger settings
-type LoggerConf struct {
+//loggerConf logger settings
+type loggerConf struct {
 	ToFile         bool
 	ToConsole      bool
 	Lv             logLevel
@@ -27,15 +26,15 @@ type LoggerConf struct {
 	ChildLv        lvMap
 }
 
-var _defaultLogConf = LoggerConf{
+var _defaultLogConf = loggerConf{
 	ToFile:         true,
 	ToConsole:      true,
-	Lv:             LvInfo,
-	DefaultChildLv: LvNotification,
+	Lv:             _LV_INFO,
+	DefaultChildLv: _LV_NOTIFICATION,
 	ChildLv:        make(lvMap),
 }
 
-var _conf = Conf{
+var _conf = conf{
 	LogRoot:     "./log/",
 	Indent:      2,
 	DefaultFile: "console.log",
@@ -43,7 +42,8 @@ var _conf = Conf{
 	Loggers: make(confMap),
 }
 
-func loadConfFile(f string, conf interface{}) error {
+//LoadConfFile load settings from storage
+func LoadConfFile(f string, conf interface{}) error {
 	c, err := ioutil.ReadFile(f)
 	if err != nil {
 		return err

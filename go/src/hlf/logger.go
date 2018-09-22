@@ -35,14 +35,14 @@ func createLogger(id string, target string, parent Logger) Logger {
 	return &lg
 }
 
-//CreateLogger init a logger
-func CreateLogger(id string) Logger {
+//MakeLogger init a logger
+func MakeLogger(id string) Logger {
 	return createLogger(id, "", _defaultLogger)
 }
 
 type logger struct {
 	id     string
-	conf   LoggerConf
+	conf   loggerConf
 	parent *logger
 	target string
 }
@@ -71,40 +71,42 @@ func (me *logger) To(target string) Logger {
 }
 
 func (me *logger) Ntf(format string, a ...interface{}) {
-	me.print(LvNotification, format, a...)
+	me.print(_LV_NOTIFICATION, format, a...)
 }
 
 func (me *logger) Inf(format string, a ...interface{}) {
-	me.print(LvInfo, format, a...)
+	me.print(_LV_INFO, format, a...)
 }
 
 func (me *logger) Err(format string, a ...interface{}) {
-	me.print(LvError, format, a...)
+	me.print(_LV_ERROR, format, a...)
 }
 
 func (me *logger) Wrn(format string, a ...interface{}) {
-	me.print(LvWarning, format, a...)
+	me.print(_LV_WARNING, format, a...)
 }
 
 func (me *logger) Dbg(format string, a ...interface{}) {
-	me.print(LvDebug, format, a...)
+	me.print(_LV_DEBUG, format, a...)
 }
 
 func (me *logger) Trc(format string, a ...interface{}) {
-	me.print(LvTrace, format, a...)
+	me.print(_LV_TRACE, format, a...)
 }
 
 func (me *logger) print(lv logLevel, format string, a ...interface{}) {
+	if me.conf.Lv < lv {
+		return
+	}
+
 	text := me.formati(nil, lv, format, a...)
 	if me.conf.ToConsole {
 		me.send2console(text)
 	}
 
 	if me.conf.ToFile {
-		if me.conf.Lv >= lv {
-			text = me.formati(me, lv, format, a...)
-			me.send2file(me.target, text)
-		}
+		text = me.formati(me, lv, format, a...)
+		me.send2file(me.target, text)
 
 		for log := me.parent; log != nil; log = log.parent {
 			clv := me.findAppliedLv(log)
@@ -117,7 +119,7 @@ func (me *logger) print(lv logLevel, format string, a ...interface{}) {
 }
 
 func (me *logger) findAppliedLv(ancestor *logger) logLevel {
-	var lv logLevel = LvUnknown
+	var lv logLevel = _LV_UNKNOWN
 	found := false
 
 	for log := me; log != ancestor && log.parent != nil; log = log.parent {

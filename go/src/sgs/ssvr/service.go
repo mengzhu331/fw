@@ -1,9 +1,15 @@
 package ssvr
 
 import (
-	"errors"
+	"er"
 	"hlf"
 )
+
+var _param SSrvParam
+
+var _log = hlf.MakeLogger("SSVR")
+
+var _slog = _log.Child("Sessions")
 
 //SSrvParam parameters for the server
 type SSrvParam struct {
@@ -12,13 +18,15 @@ type SSrvParam struct {
 	ABF        AppBuildFunc
 }
 
-var _param SSrvParam
-
-var _log = hlf.CreateLogger("SSVR")
-
 //Init set server param
 func Init(param SSrvParam) error {
 	_log.Inf("Starting SSVR...")
+	if !validate(&param) {
+		return er.Throw(_E_INVALID_SERVER_PARAM, er.EInfo{
+			"details": "invalid server parameters used for SSVR",
+			"param":   param,
+		}).To(_log)
+	}
 	_param = param
 	_log.Inf("SSVR started")
 	return nil
@@ -26,11 +34,15 @@ func Init(param SSrvParam) error {
 
 //Login log into system with user credential
 func Login(username string, password string) (int, error) {
+
+	_log.Inf("User login: %v", username)
+
 	_cMutex.Lock()
 	defer _cMutex.Unlock()
 
 	for id, c := range _clients {
 		if c.username == username {
+			_log.Ntf("User already login: %v, client %v", username, id)
 			return id, nil
 		}
 	}
@@ -40,49 +52,56 @@ func Login(username string, password string) (int, error) {
 		username: username,
 	}
 
+	_log.Inf("User %v login successful, assigned %v", username, _clientID)
+
 	return _clientID, nil
 }
 
 //JoinSession Join a game session
 func JoinSession(clientID int) error {
+	_log.Inf("Client %v requested to join session", clientID)
+
 	_csMutex.Lock()
 	defer _csMutex.Unlock()
 
 	if _currentSession == nil {
 		_sessionID++
-		_currentSession = &session{
-			ID:      _sessionID,
-			cch:     make(chan string),
-			clients: make(clientMap),
-		}
+		_currentSession = makeSession(_sessionID)
+
+		_log.Inf("Created new session %v", _sessionID)
 	}
 
-	_, found := _currentSession.clients[clientID]
+	c, found := _currentSession.clients[clientID]
 
 	if found {
-		return errors.New("Already added to session")
+		_log.Ntf("already added to session %v, duplicated request", c.id)
+		return nil
 	}
 
 	_cMutex.Lock()
-	c, cfound := _clients[clientID]
+	c, found = _clients[clientID]
 	_cMutex.Unlock()
 
-	if !cfound {
-		return errors.New("Client not found")
+	if !found {
+		return er.Throw(_E_JOIN_SESSION_INVALID_CLIENT, er.EInfo{
+			"details": "joing session request with illegal client",
+			"client":  clientID,
+		}).To(_log)
 	}
 
 	_currentSession.clients[clientID] = c
 
 	if len(_currentSession.clients) == _param.CPS {
 
+		_log.Inf("session %v has sufficient user joined, starting...", _currentSession.id)
 		_sMutex.Lock()
-		_sessions[_currentSession.ID] = _currentSession
+		_sessions[_currentSession.id] = _currentSession
 		_sMutex.Unlock()
 
-		go _currentSession.run(_param.BaseTickMs)
+		go _currentSession.run()
 		_currentSession = nil
-	} else if len(_currentSession.clients) > _param.CPS {
-		return errors.New("client number exceeds max allowed for session")
+		_log.Inf("session %v started", _currentSession.id)
+
 	}
 	return nil
 }
@@ -93,10 +112,20 @@ func BindNetConn(clientID int, net NetConn) error {
 	defer _cMutex.Unlock()
 
 	client, ok := _clients[clientID]
+
 	if !ok {
-		return errors.New("client not found")
+		return er.Throw(_E_BIND_CONN_INVALID_CLIENT, er.EInfo{
+			"details": "bind connection with illegal client",
+			"client":  clientID,
+		}).To(_log)
 	}
+
 	client.conn = net
+	net.BindClientID(clientID)
 	_clients[clientID] = client
 	return nil
+}
+
+func validate(p *SSrvParam) bool {
+	return p.ABF != nil && p.BaseTickMs > 0 && p.CPS > 0
 }

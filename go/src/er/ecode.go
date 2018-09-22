@@ -1,48 +1,66 @@
 package er
 
 const (
-	//ImptAcceptible the error is a sensible variation of normal situation
-	ImptAcceptible = (iota + 1) << 24
+	//E_IMPORTANCE importance bits
+	E_IMPORTANCE = 0xF << 24
 
-	//ImptRecoverable system is able to recover from the error
-	ImptRecoverable
+	//E_TYPE type bits
+	E_TYPE = 0xF << 20
 
-	//ImptRemarkable system is able to recover from the error, but it should be taken care of
-	ImptRemarkable
-
-	//ImptThreat system is able to recover from the error, but it can potentially threaten the system
-	ImptThreat
-
-	//ImptDegrade system has to degrade to recover from the error
-	ImptDegrade
-
-	//ImptUnrecoverable system is not able to recover from the error
-	ImptUnrecoverable
+	//E_CAUSE cause bits
+	E_CAUSE = 0xF << 16
 )
 
 const (
 
-	//ETInternal program internal error
-	ETInternal = (iota + 1) << 20
+	//IMPT_NONE no threat
+	IMPT_NONE = 0
 
-	//ETInteraction error from systems interaction
-	ETInteraction
+	//IMPT_ACCEPTIBLE the error is a sensible variation of normal situation
+	IMPT_ACCEPTIBLE = (iota + 1) << 24
 
-	//ETConsumeService failed to consume service
-	ETConsumeService
+	//IMPT_RECOVERABLE system is able to recover from the error
+	IMPT_RECOVERABLE
+
+	//IMPT_REMARKABLE system is able to recover from the error, but it should be taken care of
+	IMPT_REMARKABLE
+
+	//IMPT_THREAT system is able to recover from the error, but it can potentially threaten the system
+	IMPT_THREAT
+
+	//IMPT_DEGRADE system has to degrade to recover from the error
+	IMPT_DEGRADE
+
+	//IMPT_UNRECOVERABLE system is not able to recover from the error
+	IMPT_UNRECOVERABLE
 )
 
 const (
 
-	//ETIllegalParameter parameter is invalid for a request
-	ETIllegalParameter = (iota + 1) << 16
+	//ET_INTERNAL program internal error
+	ET_INTERNAL = (iota + 1) << 20
 
-	//ETInvalidState system internal state is invalid
-	ETInvalidState
+	//ET_INTERACTION error from systems interaction
+	ET_INTERACTION
 
-	//ETInvalidRequest request should not be received according to the system state
-	ETInvalidRequest
+	//ET_SERVICE failed to call service
+	ET_SERVICE
+)
 
-	//ETTimeOut have not obtained response or request within required time frame
-	ETTimeOut
+const (
+
+	//ET_ILLEGAL_PARAMETER parameter is invalid for a request
+	ET_ILLEGAL_PARAMETER = (iota + 1) << 16
+
+	//ET_INVALID_STATE system internal state is invalid
+	ET_INVALID_STATE
+
+	//ET_INVALID_REQUEST request should not be received according to the system state
+	ET_INVALID_REQUEST
+
+	//ET_TIMEOUT have not obtained response or request within required time frame
+	ET_TIMEOUT
+
+	//ET_NETWORK network error
+	ET_NETWORK
 )

@@ -13,31 +13,22 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+var _param WebSrvParam
+
+var _log = hlf.MakeLogger("SGS Web Server")
+
 const (
-	_EFailedToStartWebServer = er.ImptUnrecoverable | er.ETConsumeService | 0x1
+	_EWeb = 0x1000
 )
 
 const (
-	//EP_MIN minimal endpoint index
-	EP_MIN = iota
-
-	//EP_LOGIN login endpoint
-	EP_LOGIN
-
-	//EP_WEBSOCKET open websocket endpoint
-	EP_WEBSOCKET
-
-	//EP_JOINSESSION join session endpoint
-	EP_JOINSESSION
-
-	//EP_MAX maximal endpoint index
-	EP_MAX
+	_E_START_WEB_SERVER_FAIL = er.IMPT_UNRECOVERABLE | er.ET_SERVICE | _EWeb | 0x1
 )
 
-//EndPointMap name of endpoint
-type EndPointMap map[int]string
+//endpointMap name of endpoint
+type endpointMap map[string]string
 
-func (me *EndPointMap) toString() string {
+func (me *endpointMap) toString() string {
 	es := "("
 	first := true
 	for _, v := range *me {
@@ -55,16 +46,10 @@ func (me *EndPointMap) toString() string {
 //WebSrvParam parameter for rest/ws web server
 type WebSrvParam struct {
 	Port        int
-	EPM         EndPointMap
+	EPM         endpointMap
 	WSReadBuff  int
 	WSWriteBuff int
 }
-
-var _param WebSrvParam
-
-var _log = hlf.CreateLogger("SGS Web Server")
-
-var _ech = make(chan string)
 
 //StartUp start up the sgs web server
 func StartUp(param WebSrvParam) error {
@@ -74,20 +59,21 @@ func StartUp(param WebSrvParam) error {
 
 	_log.Ntf("SGS Web Server Params: Port %v, Endpoints %v", _param.Port, _param.EPM.toString())
 
-	router.HandleFunc(param.EPM[EP_LOGIN], loginRest).Methods("POST")
-	router.HandleFunc(param.EPM[EP_JOINSESSION], joinSessionRest).Methods("POST")
-	router.HandleFunc(param.EPM[EP_WEBSOCKET], connectWS)
+	router.HandleFunc(param.EPM["login"], loginRest).Methods("POST")
+	router.HandleFunc(param.EPM["join_session"], joinSessionRest).Methods("POST")
+	router.HandleFunc(param.EPM["ws"], connectWS)
+	_ch := make(chan string)
 	go func() {
 		err := http.ListenAndServe(":"+strconv.Itoa(param.Port), router)
 		if err != nil {
-			_ech <- err.Error()
+			_ch <- err.Error()
 		}
 	}()
 
 	select {
-	case es := <-_ech:
+	case es := <-_ch:
 		{
-			e := er.Throw(_EFailedToStartWebServer, er.EInfo{"Fail info": es})
+			e := er.Throw(_E_START_WEB_SERVER_FAIL, er.EInfo{"Fail info": es})
 			e.To(_log)
 			return e
 		}
@@ -104,81 +90,114 @@ func enableCors(w *http.ResponseWriter) {
 }
 
 func loginRest(w http.ResponseWriter, r *http.Request) {
+	_log.Trc("LoginRest() enter")
+	defer _log.Trc("LoginRest() leave")
+
 	enableCors(&w)
 	queries := r.URL.Query()
 	un, _ := queries["username"]
 	pw, _ := queries["password"]
 
+	_log.Inf("Login request: Username %v", un)
+
 	if len(un) != 1 || len(pw) != 1 {
+		info := "Username or password is missing"
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Username or password is missing"))
+		w.Write([]byte(info))
+		_log.Ntf(info)
 		return
 	}
 
 	cid, err := ssvr.Login(un[0], pw[0])
 
 	if err != nil {
+		info := "Incorrect username or password"
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Incorrect username or password"))
+		w.Write([]byte(info))
+		_log.Ntf(info)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(cid)
+
+	_log.Inf("Login successful")
 	return
 }
 
 func joinSessionRest(w http.ResponseWriter, r *http.Request) {
+	_log.Trc("JoinSessionRest() enter")
+	defer _log.Trc("JoinSessionRest() leave")
+
 	enableCors(&w)
 	queries := r.URL.Query()
 	cid, _ := queries["clientid"]
 
+	_log.Inf("Join Session request: Client ID %v", cid)
+
 	if len(cid) != 1 {
+		info := "Invalid client ID"
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Invalid client ID"))
+		w.Write([]byte(info))
+		_log.Ntf(info)
 		return
 	}
 
 	cidi, err := strconv.Atoi(cid[0])
 
 	if err != nil {
+		info := "Invalid client ID"
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Invalid client ID"))
+		w.Write([]byte(info))
+		_log.Ntf(info)
 		return
 	}
 
 	err = ssvr.JoinSession(cidi)
 
 	if err != nil {
+		info := err.Error()
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		w.Write([]byte(info))
 		return
 	}
 
 	json.NewEncoder(w).Encode("Success")
+
+	_log.Inf("Join Session successful")
 }
 
 func connectWS(w http.ResponseWriter, r *http.Request) {
+	_log.Trc("connectWS() enter")
+	defer _log.Trc("connectWS() leave")
+
 	enableCors(&w)
 	queries := r.URL.Query()
 	cid, _ := queries["clientid"]
 
+	_log.Inf("Connect WS request: Client ID %v", cid)
+
 	if len(cid) != 1 {
+		info := "Invalid client ID"
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Invalid client ID"))
+		w.Write([]byte(info))
+		_log.Ntf(info)
 		return
 	}
 
 	cidi, err := strconv.Atoi(cid[0])
 
 	if err != nil {
+		info := "Invalid client ID"
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Invalid client ID"))
+		w.Write([]byte(info))
+		_log.Ntf(info)
 		return
 	}
 
 	conn, wserr := makeWSConnection(w, r)
 	if wserr != nil {
+		_log.Err(wserr.Error())
 		return
 	}
 
@@ -187,6 +206,7 @@ func connectWS(w http.ResponseWriter, r *http.Request) {
 	})
 
 	w.Write([]byte("Success"))
+	_log.Inf("Connect WS successful")
 }
 
 func makeWSConnection(w http.ResponseWriter, r *http.Request) (*websocket.Conn, error) {

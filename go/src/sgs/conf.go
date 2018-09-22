@@ -1,65 +1,68 @@
 package sgs
 
 import (
-	"sgs/web"
-
-	"github.com/tkanos/gonfig"
+	"er"
+	"hlf"
 )
 
-//WebConf web server settings
-type WebConf struct {
+//webConf web server settings
+type webConf struct {
 	Port        int
-	EPM         web.EndPointMap
+	EPM         map[string]string
 	WSReadBuff  int
 	WSWriteBuff int
 }
 
-//SessionConf game session settings
-type SessionConf struct {
+//sessionConf game session settings
+type sessionConf struct {
 	CPS        int
 	BaseTickMs int
 }
 
-//Conf sgs web server configuration
-type Conf struct {
-	Web     WebConf
-	Session SessionConf
+//conf sgs web server configuration
+type conf struct {
+	Web     webConf
+	Session sessionConf
 }
 
-var _defaultConf = Conf{
-	Web: WebConf{
+var _defaultConf = conf{
+	Web: webConf{
 		Port:        9090,
 		EPM:         nil,
 		WSReadBuff:  1024,
 		WSWriteBuff: 1024,
 	},
 
-	Session: SessionConf{
+	Session: sessionConf{
 		CPS:        3,
 		BaseTickMs: 100,
 	},
 }
 
-var _defaultEPM = web.EndPointMap{
-	web.EP_LOGIN:       "/login",
-	web.EP_WEBSOCKET:   "/ws",
-	web.EP_JOINSESSION: "/join_game",
+var _defaultEPM = map[string]string{
+	"login":        "/login",
+	"ws":           "/ws",
+	"join_session": "/join_game",
 }
 
-//LoadConf read conf file to get the settings, default values will be used when a field is missing
-func LoadConf(f string) Conf {
+//loadConf read conf file to get the settings, default values will be used when a field is missing
+func loadConf(f string) conf {
 	c := _defaultConf
 
-	gonfig.GetConf(f, &c)
+	e := hlf.LoadConfFile(f, &c)
 
-	if c.Web.EPM == nil {
-		c.Web.EPM = make(map[int]string)
+	if e != nil {
+		er.Throw(_E_LOAD_CONF_FAIL, er.EInfo{"filename": f}).To(_log)
 	}
 
-	for i := web.EP_MIN + 1; i < web.EP_MAX; i++ {
-		_, found := c.Web.EPM[i]
+	if c.Web.EPM == nil {
+		c.Web.EPM = make(map[string]string)
+	}
+
+	for k, v := range _defaultEPM {
+		_, found := c.Web.EPM[k]
 		if !found {
-			c.Web.EPM[i] = _defaultEPM[i]
+			c.Web.EPM[k] = v
 		}
 	}
 	return c

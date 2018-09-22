@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	_ConfFile = "hlf.conf"
+	_CONF_FILE = "hlf.conf"
 )
 
 type logItem struct {
@@ -25,16 +25,16 @@ var _defaultLogger Logger
 
 func init() {
 	//load settings
-	err := loadConfFile(_ConfFile, &_conf)
+	err := LoadConfFile(_CONF_FILE, &_conf)
 
 	if err != nil {
-		fmt.Println("[Warning][HLF] Failed to load settings: " + _ConfFile + " " + err.Error())
+		fmt.Println("[Warning][HLF] Failed to load settings: " + _CONF_FILE + " " + err.Error())
 	}
 
 	//create root directory for the log session
 	_logRoot = generateLogRoot()
 
-	_defaultLogger = CreateLogger("")
+	_defaultLogger = MakeLogger("")
 
 	//turn server on
 	go run()

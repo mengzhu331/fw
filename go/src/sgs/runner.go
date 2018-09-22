@@ -6,14 +6,14 @@ import (
 	"sgs/web"
 )
 
-var _log hlf.Logger = hlf.CreateLogger("SGS Runner")
+var _log hlf.Logger = hlf.MakeLogger("SGS Runner")
 
 //Run turn on the sgs servers
 func Run(abf ssvr.AppBuildFunc) error {
 
 	_log.Inf("Starting SGS servers...")
 
-	c := LoadConf("./sgs.conf")
+	c := loadConf("./sgs.conf")
 
 	e := ssvr.Init(ssvr.SSrvParam{
 		CPS:        c.Session.CPS,

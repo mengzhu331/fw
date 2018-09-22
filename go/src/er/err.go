@@ -17,11 +17,28 @@ type Err struct {
 }
 
 func (me *Err) Error() string {
+	if me == nil {
+		return "No Error"
+	}
+
 	return fmt.Sprintf("Error Code: 0x%x, Error Info: %v", me.code, me.info)
+}
+
+//Code retrieve code
+func (me *Err) Code() int32 {
+	if me == nil {
+		return 0
+	}
+
+	return me.code
 }
 
 //DumpCallStack generate a call stack integrated string
 func (me *Err) DumpCallStack(lv int) string {
+	if me == nil {
+		return ""
+	}
+
 	if lv > len(me.callStack) {
 		lv = len(me.callStack)
 	}
@@ -80,7 +97,8 @@ func Throw(code int32, info EInfo) *Err {
 }
 
 //To log error
-func (me *Err) To(logger hlf.Logger) {
+func (me *Err) To(logger hlf.Logger) *Err {
 	logger.Err(me.Error())
 	logger.To("error.log").Err(me.Error() + ", " + me.DumpCallStack(10))
+	return me
 }

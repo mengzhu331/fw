@@ -16,6 +16,12 @@ const (
 
 	//CMD_TICK tick command
 	CMD_TICK = CMD_C_SYSTEM | (iota + 1)
+
+	//CMD_FORWARD_CLIENT forward client sent data
+	CMD_FORWARD_CLIENT
+
+	//CMD_FORWARD_TO_CLIENT data is to be forwarded
+	CMD_FORWARD_TO_CLIENT
 )
 
 const (
@@ -30,11 +36,12 @@ const (
 
 //Command common command object
 type Command struct {
-	ID    int
-	Param map[string]interface{}
+	ID      int
+	Payload interface{}
 }
 
-//InCate if command is in category
-func (me *Command) InCate(c int) bool {
-	return (me.ID & c) == c
+//PlForwardToClient payload for forward to command
+type PlForwardToClient struct {
+	ClientID int
+	Payload  []byte
 }
