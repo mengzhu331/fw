@@ -1,6 +1,8 @@
 package ssvr
 
 const (
+	//CMD_CATEGORY command category bits
+	CMD_CATEGORY = 0xff000000
 
 	//CMD_C_SYSTEM system command category
 	CMD_C_SYSTEM = 0x08000000
@@ -37,6 +39,7 @@ const (
 //Command common command object
 type Command struct {
 	ID      int
+	Source  int
 	Payload interface{}
 }
 

@@ -6,7 +6,7 @@ import (
 
 //App interface for applications
 type App interface {
-	Init(s Session, clients []NetClient) *er.Err
+	Init(s Session, clientIDs []int) *er.Err
 	SendCommand(command Command) *er.Err
 }
 

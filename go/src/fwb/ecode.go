@@ -1,0 +1,11 @@
+package main
+
+import "er"
+
+const (
+	_E_FWB = 0x8000
+
+	_E_CMD_INVALID_CLIENT = _E_FWB | er.IMPT_REMARKABLE | er.ET_INTERACTION | er.ET_INVALID_REQUEST | 0x1
+
+	_E_INVALID_CMD = _E_FWB | er.IMPT_REMARKABLE | er.ET_INTERNAL | er.ET_INVALID_REQUEST | 0x2
+)

@@ -23,6 +23,7 @@ var _sMutex sync.Mutex
 type Session interface {
 	CmdChan() chan []byte
 	ForwardToClient(command Command) *er.Err
+	GetLogger() hlf.Logger
 }
 
 type session struct {
@@ -43,16 +44,28 @@ var _cm = commandMap{
 	CMD_FORWARD_TO_CLIENT: execForwardToClient,
 }
 
+func (me *session) CmdChan() chan []byte {
+	return me.cch
+}
+
+func (me *session) ForwardToClient(command Command) *er.Err {
+	return execForwardToClient(me, command)
+}
+
+func (me *session) GetLogger() hlf.Logger {
+	return me.lg
+}
+
 func (me *session) run() {
 
 	me.lg.Inf("Starting session", me.id)
 
 	me.cch = make(chan []byte)
 
-	clients := make([]NetClient, 0)
+	clients := make([]int, 0)
 	for _, c := range me.clients {
 		go c.conn.Run(me.cch)
-		clients = append(clients, &c)
+		clients = append(clients, c.ID())
 	}
 
 	me.app = _param.ABF()
@@ -176,14 +189,6 @@ func execForwardToClient(s *session, command Command) *er.Err {
 	}
 
 	return nil
-}
-
-func (me *session) CmdChan() chan []byte {
-	return me.cch
-}
-
-func (me *session) ForwardToClient(command Command) *er.Err {
-	return execForwardToClient(me, command)
 }
 
 func makeSession(sessionID int) *session {
