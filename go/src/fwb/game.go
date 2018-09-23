@@ -4,21 +4,24 @@ import (
 	"er"
 	"hlf"
 	"sgs/ssvr"
+	"strconv"
 )
 
 type phaseDataMap map[int]interface{}
 
 type game interface {
-	init(app fwApp)
+	init(app fwApp) *er.Err
 	sendCommand(command ssvr.Command) *er.Err
 }
 
 type gameImp struct {
-	app fwApp
-	gd  gameData
-	pd  phaseDataMap
-	phs phase
-	lg  hlf.Logger
+	app     fwApp
+	gd      gameData
+	pd      phaseDataMap
+	phs     phase
+	lg      hlf.Logger
+	cm      *cardManager
+	profile string
 }
 
 type execCmd func(*gameImp, ssvr.Command) *er.Err
@@ -37,7 +40,7 @@ var _defaultCmdMap = map[int]execCmd{
 	ssvr.CMD_TICK: onTickDefault,
 }
 
-func (me *gameImp) init(app fwApp) {
+func (me *gameImp) init(app fwApp) *er.Err {
 	me.app = app
 	me.pd = make(phaseDataMap)
 	me.gd.round = 0
@@ -50,9 +53,28 @@ func (me *gameImp) init(app fwApp) {
 		me.gd.pData[k] = pdata
 	}
 
-	me.gd.cards = make([]cardData, 0)
-
 	me.lg = app.getLogger()
+
+	if len(app.getPlayers()) == 3 {
+		me.profile = _PROFILE_3PVP
+	} else if len(app.getPlayers()) == 2 {
+		me.profile = _PROFILE_2PVP
+	} else {
+		er.Throw(_E_NO_PROPER_PROFILE, er.EInfo{
+			"details": "no proper profile for the game parameter",
+			"player":  strconv.Itoa(len(app.getPlayers())),
+		}).To(me.lg)
+	}
+
+	me.gd.cards = make([]card, 0)
+
+	me.cm = &cardManager{
+		gm: me,
+	}
+
+	e := me.cm.loadCards()
+
+	return e
 }
 
 func (me *gameImp) sendCommand(command ssvr.Command) *er.Err {
@@ -94,9 +116,6 @@ func (me *gameImp) gotoPhase(p phase) {
 }
 
 func run(me *gameImp, command ssvr.Command) *er.Err {
-	var cards = make([]card, 0)
-	loadCards(me, &cards, _PROFILE_3PVP)
-
 	me.gotoPhase(_P_GAME_START)
 	return nil
 }

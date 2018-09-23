@@ -58,7 +58,7 @@ type cardData struct {
 type gameData struct {
 	round int
 	pData map[int]playerData
-	cards []cardData
+	cards []card
 }
 
 func initPlayerData() playerData {

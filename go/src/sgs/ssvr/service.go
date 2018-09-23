@@ -3,6 +3,7 @@ package ssvr
 import (
 	"er"
 	"hlf"
+	"strconv"
 )
 
 var _param SSrvParam
@@ -58,7 +59,7 @@ func Login(username string, password string) (int, error) {
 }
 
 //JoinSession Join a game session
-func JoinSession(clientID int) error {
+func JoinSession(clientID int) *er.Err {
 	_log.Inf("Client %v requested to join session", clientID)
 
 	_csMutex.Lock()
@@ -80,6 +81,15 @@ func JoinSession(clientID int) error {
 
 	_cMutex.Lock()
 	c, found = _clients[clientID]
+	if c.s != nil {
+		cid := c.id
+		_cMutex.Unlock()
+		return er.Throw(_E_CLIENT_ALREADY_JOIN_SESSION, er.EInfo{
+			"details": "client duplicated join session request",
+			"client":  strconv.Itoa(cid),
+		})
+	}
+	c.s = _currentSession
 	_cMutex.Unlock()
 
 	if !found {
@@ -97,12 +107,36 @@ func JoinSession(clientID int) error {
 		_sMutex.Lock()
 		_sessions[_currentSession.id] = _currentSession
 		_sMutex.Unlock()
-
-		go _currentSession.run()
+		if !startSession(_currentSession) {
+			closeSession(_currentSession)
+		}
 		_currentSession = nil
 
 	}
 	return nil
+}
+
+func startSession(s *session) bool {
+
+	err := s.run()
+	fail := (err.Code() & er.E_IMPORTANCE) >= er.IMPT_UNRECOVERABLE
+	return !fail
+}
+
+func closeSession(s *session) {
+	_log.Inf("Closing session %v...", s.id)
+
+	_cMutex.Lock()
+	for _, c := range s.clients {
+		c.s = nil
+	}
+	_cMutex.Unlock()
+
+	_sMutex.Lock()
+	delete(_sessions, s.id)
+	_sMutex.Unlock()
+
+	_log.Inf("Session %v closed", s.id)
 }
 
 //BindNetConn Bind a NetConn to the client ID

@@ -56,7 +56,7 @@ func (me *session) GetLogger() hlf.Logger {
 	return me.lg
 }
 
-func (me *session) run() {
+func (me *session) run() *er.Err {
 
 	me.lg.Inf("Starting session %v", me.id)
 
@@ -71,11 +71,14 @@ func (me *session) run() {
 	}
 
 	me.app = _param.ABF()
-	me.app.Init(me, clients)
+
+	err := me.app.Init(me, clients)
+	if (err.Code() & er.E_IMPORTANCE) >= er.IMPT_UNRECOVERABLE {
+		me.lg.Err("Session failed to start due to application failed to init")
+		return err
+	}
 
 	me.running = true
-
-	t := time.Now()
 
 	me.lg.Inf("Session started: %v", me.id)
 
@@ -83,6 +86,14 @@ func (me *session) run() {
 		ID: CMD_APP_RUN,
 	})
 
+	go sessionRoutine(me)
+
+	return nil
+
+}
+
+func sessionRoutine(me *session) {
+	t := time.Now()
 	for me.running {
 		select {
 		case <-time.After(time.Duration(me.baseTickMs) * time.Millisecond):
@@ -93,6 +104,7 @@ func (me *session) run() {
 				ID:      CMD_TICK,
 				Payload: dms,
 			})
+			t = tt
 
 		case cmdBytes := <-me.cch:
 
@@ -104,7 +116,6 @@ func (me *session) run() {
 			}
 		}
 	}
-
 }
 
 func (me *session) exec(cmdBytes []byte) *er.Err {

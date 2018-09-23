@@ -40,15 +40,15 @@ type card struct {
 	InUseSlot      int
 	WorkerRequired int
 	PersonRequired int
-	Prob           int
 	ActionID       int
 }
 
-func loadCards(gm *gameImp, cards *[]card, profile string) *er.Err {
+func loadCards(gm *gameImp, cards *[]card) *er.Err {
+	profile := gm.profile
 	path := "./profiles/" + profile + "/" + "cards.conf"
 	c, err := ioutil.ReadFile(path)
 	if err != nil {
-		er.Throw(_E_MISSING_GAME_SETTINGS, er.EInfo{
+		return er.Throw(_E_MISSING_GAME_SETTINGS, er.EInfo{
 			"details":  "failed to load card settings",
 			"profile":  profile,
 			"io error": err.Error(),
@@ -57,7 +57,7 @@ func loadCards(gm *gameImp, cards *[]card, profile string) *er.Err {
 
 	err = json.Unmarshal(c, cards)
 	if err != nil {
-		er.Throw(_E_INVALID_SETTINGS, er.EInfo{
+		return er.Throw(_E_INVALID_SETTINGS, er.EInfo{
 			"details":      "failed to decode card settings",
 			"decode error": err.Error(),
 		}).To(gm.lg)

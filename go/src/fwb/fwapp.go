@@ -47,9 +47,7 @@ func (me *fwAppImp) Init(s ssvr.Session, clients []int) *er.Err {
 	}
 
 	me.gm = makeGame()
-	me.gm.init(me)
-
-	return nil
+	return me.gm.init(me)
 }
 
 func (me *fwAppImp) SendCommand(command ssvr.Command) *er.Err {

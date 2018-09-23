@@ -21,6 +21,7 @@ type netClient struct {
 	id       int
 	username string
 	conn     NetConn
+	s        *session
 }
 
 func (me *netClient) ID() int {
