@@ -98,7 +98,20 @@ func Throw(code int32, info EInfo) *Err {
 
 //To log error
 func (me *Err) To(logger hlf.Logger) *Err {
-	logger.Err(me.Error())
-	logger.To("error.log").Err(me.Error() + ", " + me.DumpCallStack(10))
+
+	if (me.code | E_IMPORTANCE) >= IMPT_THREAT {
+		logger.Err(me.Error())
+		logger.To("error.log").Err(me.Error() + ", " + me.DumpCallStack(10))
+		return me
+	}
+
+	if (me.code | E_IMPORTANCE) >= IMPT_REMARKABLE {
+		logger.Ntf(me.Error())
+		logger.To("remarkable.log").Ntf(me.Error() + ", " + me.DumpCallStack(10))
+		return me
+	}
+
+	logger.Inf(me.Error())
+	logger.To("exception.log").Inf(me.Error() + ", " + me.DumpCallStack(10))
 	return me
 }

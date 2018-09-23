@@ -40,7 +40,7 @@ type session struct {
 type commandMap map[int]func(*session, Command) *er.Err
 
 var _cm = commandMap{
-	CMD_FORWARD_CLIENT:    execForwardClient,
+	CMD_FORWARD_TO_APP:    execForwardToApp,
 	CMD_FORWARD_TO_CLIENT: execForwardToClient,
 }
 
@@ -76,6 +76,10 @@ func (me *session) run() {
 	t := time.Now()
 
 	me.lg.Inf("Session started: %v", me.id)
+
+	me.app.SendCommand(Command{
+		ID: CMD_APP_RUN,
+	})
 
 	for me.running {
 		select {
@@ -124,7 +128,7 @@ func (me *session) exec(cmdBytes []byte) *er.Err {
 	return execlet(me, command)
 }
 
-func execForwardClient(s *session, command Command) *er.Err {
+func execForwardToApp(s *session, command Command) *er.Err {
 	s.lg.Dbg("Forward command from client: Payload %v", command.Payload)
 
 	cmdBytes, isBytes := command.Payload.([]byte)

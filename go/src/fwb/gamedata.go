@@ -1,20 +1,20 @@
 package main
 
 const (
-	_P_HEART = iota
-	_P_GOLD
-	_P_CEREALS
-	_P_MEAT
+	_PT_HEART = iota
+	_PT_GOLD
+	_PT_CEREALS
+	_PT_MEAT
 
-	_P_WOO
-	_P_LEATHER
-	_P_ROBE
-	_P_HAT
+	_PT_WOO
+	_PT_LEATHER
+	_PT_ROBE
+	_PT_HAT
 
-	_P_MAX
+	_PT_MAX
 )
 
-type propertySet [_P_MAX]int
+type propertySet [_PT_MAX]int
 
 type playerData struct {
 	playerID int
@@ -59,4 +59,23 @@ type gameData struct {
 	round int
 	pData map[int]playerData
 	cards []cardData
+}
+
+func initPlayerData() playerData {
+	data := playerData{}
+
+	data.worker = 5
+	data.employee = 0
+	data.houseLv = 0
+
+	data.property[_PT_HEART] = 0
+	data.property[_PT_GOLD] = 30
+	data.property[_PT_CEREALS] = 5
+	data.property[_PT_MEAT] = 0
+	data.property[_PT_WOO] = 0
+	data.property[_PT_LEATHER] = 0
+	data.property[_PT_HAT] = 0
+	data.property[_PT_ROBE] = 0
+
+	return data
 }

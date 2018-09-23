@@ -15,25 +15,26 @@ const (
 )
 
 const (
+	//CMD_C_CLIENT_TO_APP the command is sent to backend app from client
+	CMD_C_CLIENT_TO_APP = CMD_C_CLIENT | 0x00010000
+
+	//CMD_C_APP_TO_CLIENT the command is sent to client from backend app
+	CMD_C_APP_TO_CLIENT = CMD_C_APP | 0x00010000
+)
+
+const (
 
 	//CMD_TICK tick command
 	CMD_TICK = CMD_C_SYSTEM | (iota + 1)
 
-	//CMD_FORWARD_CLIENT forward client sent data
-	CMD_FORWARD_CLIENT
+	//CMD_FORWARD_TO_APP forward client sent data
+	CMD_FORWARD_TO_APP
 
 	//CMD_FORWARD_TO_CLIENT data is to be forwarded
 	CMD_FORWARD_TO_CLIENT
-)
 
-const (
-	//CMD_TO_CLIENT app send to client
-	CMD_TO_CLIENT = CMD_C_APP | (iota + 1)
-)
-
-const (
-	//CMD_FROM_CLIENT client send to app
-	CMD_FROM_CLIENT = CMD_C_CLIENT | (iota + 1)
+	//CMD_APP_RUN allow app to run
+	CMD_APP_RUN
 )
 
 //Command common command object
@@ -47,4 +48,9 @@ type Command struct {
 type PlForwardToClient struct {
 	ClientID int
 	Payload  []byte
+}
+
+//CmdInCategory if the command category includes the command
+func CmdInCategory(command Command, c int) bool {
+	return (command.ID & c) == c
 }

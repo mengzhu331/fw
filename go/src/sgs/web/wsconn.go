@@ -27,7 +27,7 @@ func (me *wsConn) Run(ch chan []byte) {
 		}
 
 		message, _ = json.Marshal(ssvr.Command{
-			ID:      ssvr.CMD_FORWARD_CLIENT,
+			ID:      ssvr.CMD_FORWARD_TO_APP,
 			Payload: message,
 		})
 
