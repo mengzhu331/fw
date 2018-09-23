@@ -94,6 +94,9 @@ func (me *gameImp) gotoPhase(p phase) {
 }
 
 func run(me *gameImp, command ssvr.Command) *er.Err {
+	var cards = make([]card, 0)
+	loadCards(me, &cards, _PROFILE_3PVP)
+
 	me.gotoPhase(_P_GAME_START)
 	return nil
 }

@@ -45,6 +45,9 @@ const (
 
 	//ET_SERVICE failed to call service
 	ET_SERVICE
+
+	//ET_SETTINGS error with sofware settings
+	ET_SETTINGS
 )
 
 const (
@@ -63,4 +66,7 @@ const (
 
 	//ET_NETWORK network error
 	ET_NETWORK
+
+	//ET_MISSING_DATA mandatory data for sofware is missing
+	ET_MISSING_DATA
 )
