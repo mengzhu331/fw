@@ -185,6 +185,12 @@ func execForwardToClient(s *session, command Command) *er.Err {
 		}).To(s.lg)
 	}
 
+	if client.conn == nil {
+		return er.Throw(_E_NO_DUAL_CONNECTION_SUPPORT, er.EInfo{
+			"details": "no dual connection",
+		}).To(s.lg)
+	}
+
 	err = client.conn.Send(pl.Payload)
 
 	if err != nil {
