@@ -58,13 +58,15 @@ func (me *session) GetLogger() hlf.Logger {
 
 func (me *session) run() {
 
-	me.lg.Inf("Starting session", me.id)
+	me.lg.Inf("Starting session %v", me.id)
 
 	me.cch = make(chan []byte)
 
 	clients := make([]int, 0)
 	for _, c := range me.clients {
-		go c.conn.Run(me.cch)
+		if c.conn != nil {
+			go c.conn.Run(me.cch)
+		}
 		clients = append(clients, c.ID())
 	}
 
@@ -120,8 +122,8 @@ func (me *session) exec(cmdBytes []byte) *er.Err {
 	execlet, found := _cm[command.ID]
 	if !found {
 		return er.Throw(_E_SESSION_INVALID_COMMAND, er.EInfo{
-			"details":    "invalid command ID",
-			"command id": command.ID,
+			"details": "invalid command ID",
+			"command": CmdHexID(command),
 		}).To(me.lg)
 	}
 

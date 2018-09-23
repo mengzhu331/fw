@@ -42,6 +42,8 @@ func (me *gameImp) init(app fwApp) {
 	me.pd = make(phaseDataMap)
 	me.gd.round = 0
 
+	me.gd.pData = make(map[int]playerData)
+
 	for k := range app.getPlayers() {
 		pdata := initPlayerData()
 		pdata.playerID = k
@@ -78,7 +80,7 @@ func (me *gameImp) sendCommand(command ssvr.Command) *er.Err {
 
 	return er.Throw(_E_CMD_NOT_EXEC, er.EInfo{
 		"details": "gameImp is not supposed to receive the command",
-		"command": command.ID,
+		"command": ssvr.CmdHexID(command),
 		"phase":   me.phs,
 	}).To(me.lg)
 }

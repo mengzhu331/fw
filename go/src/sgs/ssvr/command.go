@@ -1,5 +1,9 @@
 package ssvr
 
+import (
+	"fmt"
+)
+
 const (
 	//CMD_CATEGORY command category bits
 	CMD_CATEGORY = 0xff000000
@@ -53,4 +57,9 @@ type PlForwardToClient struct {
 //CmdInCategory if the command category includes the command
 func CmdInCategory(command Command, c int) bool {
 	return (command.ID & c) == c
+}
+
+//CmdHexID make hex string for ID of the command
+func CmdHexID(command Command) string {
+	return fmt.Sprintf("%x", command.ID)
 }

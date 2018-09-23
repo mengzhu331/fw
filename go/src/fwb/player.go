@@ -66,7 +66,7 @@ func (me *playerImp) sendCommand(command ssvr.Command) *er.Err {
 
 	return er.Throw(_E_CMD_NOT_EXEC, er.EInfo{
 		"details": "playerImp is not supposed to receive the command",
-		"ID":      command.ID,
+		"command": ssvr.CmdHexID(command),
 	})
 }
 

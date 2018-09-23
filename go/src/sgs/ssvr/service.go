@@ -93,14 +93,13 @@ func JoinSession(clientID int) error {
 
 	if len(_currentSession.clients) == _param.CPS {
 
-		_log.Inf("session %v has sufficient user joined, starting...", _currentSession.id)
+		_log.Inf("session %v has sufficient user joined, is to be started", _currentSession.id)
 		_sMutex.Lock()
 		_sessions[_currentSession.id] = _currentSession
 		_sMutex.Unlock()
 
 		go _currentSession.run()
 		_currentSession = nil
-		_log.Inf("session %v started", _currentSession.id)
 
 	}
 	return nil

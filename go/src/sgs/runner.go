@@ -16,7 +16,7 @@ func Run(abf ssvr.AppBuildFunc) error {
 	c := loadConf("./sgs.conf")
 
 	e := ssvr.Init(ssvr.SSrvParam{
-		CPS:        c.Session.CPS,
+		CPS:        c.Session.DefaultClientsPerSession,
 		BaseTickMs: c.Session.BaseTickMs,
 		ABF:        abf,
 	})

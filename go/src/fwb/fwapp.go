@@ -8,7 +8,8 @@ import (
 )
 
 var _execMap = map[int]func(*fwAppImp, ssvr.Command) *er.Err{
-	ssvr.CMD_TICK: forwardToGame,
+	ssvr.CMD_TICK:    forwardToGame,
+	ssvr.CMD_APP_RUN: forwardToGame,
 }
 
 var _execTypeMap = map[int]func(*fwAppImp, ssvr.Command) *er.Err{
@@ -38,6 +39,8 @@ func (me *fwAppImp) Init(s ssvr.Session, clients []int) *er.Err {
 
 	me.lg = s.GetLogger().Child("FamilyWarApp")
 
+	me.pm = make(map[int]player)
+
 	for c := range clients {
 		me.pm[c] = makePlayer()
 		me.pm[c].init(me, c)
@@ -64,7 +67,7 @@ func (me *fwAppImp) SendCommand(command ssvr.Command) *er.Err {
 
 	return er.Throw(_E_INVALID_CMD, er.EInfo{
 		"details": "command is invalid",
-		"ID":      command.ID,
+		"command": ssvr.CmdHexID(command),
 	}).To(me.lg)
 }
 
@@ -92,7 +95,7 @@ func forwardToPlayer(app *fwAppImp, command ssvr.Command) *er.Err {
 	p, found := app.pm[command.Source]
 	if !found {
 		return er.Throw(_E_CMD_INVALID_CLIENT, er.EInfo{
-			"details": "command from invalid client " + strconv.Itoa(command.Source) + ", command " + strconv.Itoa(command.ID),
+			"details": "command from invalid client " + strconv.Itoa(command.Source) + ", command " + ssvr.CmdHexID(command),
 		}).To(app.lg)
 	}
 

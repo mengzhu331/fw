@@ -15,8 +15,8 @@ type webConf struct {
 
 //sessionConf game session settings
 type sessionConf struct {
-	CPS        int
-	BaseTickMs int
+	DefaultClientsPerSession int
+	BaseTickMs               int
 }
 
 //conf sgs web server configuration
@@ -34,8 +34,8 @@ var _defaultConf = conf{
 	},
 
 	Session: sessionConf{
-		CPS:        3,
-		BaseTickMs: 100,
+		DefaultClientsPerSession: 3,
+		BaseTickMs:               100,
 	},
 }
 
