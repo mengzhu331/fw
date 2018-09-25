@@ -52,21 +52,27 @@ const (
 
 const (
 
-	//ET_ILLEGAL_PARAMETER parameter is invalid for a request
-	ET_ILLEGAL_PARAMETER = (iota + 1) << 16
+	//EI_ILLEGAL_PARAMETER parameter is invalid for a request
+	EI_ILLEGAL_PARAMETER = (iota + 1) << 16
 
-	//ET_INVALID_STATE system internal state is invalid
-	ET_INVALID_STATE
+	//EI_INVALID_STATE system internal state is invalid
+	EI_INVALID_STATE
 
-	//ET_INVALID_REQUEST request should not be received according to the system state
-	ET_INVALID_REQUEST
+	//EI_INVALID_REQUEST request should not be received according to the system state
+	EI_INVALID_REQUEST
 
-	//ET_TIMEOUT have not obtained response or request within required time frame
-	ET_TIMEOUT
+	//EI_TIMEOUT have not obtained response or request within required time frame
+	EI_TIMEOUT
 
-	//ET_NETWORK network error
-	ET_NETWORK
+	//EI_NETWORK network error
+	EI_NETWORK
 
-	//ET_MISSING_DATA mandatory data for sofware is missing
-	ET_MISSING_DATA
+	//EI_MISSING_DATA mandatory data for sofware is missing
+	EI_MISSING_DATA
+
+	//EI_ILLEGAL_RESULT result is not valid
+	EI_ILLEGAL_RESULT
+
+	//EI_SYSTEM the based hardware or software system fail
+	EI_SYSTEM
 )

@@ -1,10 +1,5 @@
 package hlf
 
-import (
-	"encoding/json"
-	"io/ioutil"
-)
-
 type lvMap map[string]logLevel
 
 type confMap map[string]loggerConf
@@ -40,14 +35,4 @@ var _conf = conf{
 	DefaultFile: "console.log",
 
 	Loggers: make(confMap),
-}
-
-//LoadConfFile load settings from storage
-func LoadConfFile(f string, conf interface{}) error {
-	c, err := ioutil.ReadFile(f)
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal(c, conf)
-	return err
 }

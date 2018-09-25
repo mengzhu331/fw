@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"sutil"
 	"time"
 )
 
@@ -25,7 +26,7 @@ var _defaultLogger Logger
 
 func init() {
 	//load settings
-	err := LoadConfFile(_CONF_FILE, &_conf)
+	err := sutil.LoadConfFile(_CONF_FILE, &_conf)
 
 	if err != nil {
 		fmt.Println("[Warning][HLF] Failed to load settings: " + _CONF_FILE + " " + err.Error())

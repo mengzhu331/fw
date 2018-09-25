@@ -15,14 +15,21 @@ type webConf struct {
 
 //sessionConf game session settings
 type sessionConf struct {
-	DefaultClientsPerSession int
-	BaseTickMs               int
+	BaseTickMs int
+}
+
+type appConf struct {
+	Profile           string
+	DefaultClients    int
+	MinimalClients    int
+	OptimalWaitSecond int
 }
 
 //conf sgs web server configuration
 type conf struct {
 	Web     webConf
 	Session sessionConf
+	App     appConf
 }
 
 var _defaultConf = conf{
@@ -34,8 +41,14 @@ var _defaultConf = conf{
 	},
 
 	Session: sessionConf{
-		DefaultClientsPerSession: 3,
-		BaseTickMs:               100,
+		BaseTickMs: 100,
+	},
+
+	App: appConf{
+		Profile:           "2pvp",
+		DefaultClients:    2,
+		MinimalClients:    2,
+		OptimalWaitSecond: 30,
 	},
 }
 

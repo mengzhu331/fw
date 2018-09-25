@@ -14,9 +14,12 @@ var _slog = _log.Child("Sessions")
 
 //SSrvParam parameters for the server
 type SSrvParam struct {
-	CPS        int
-	BaseTickMs int
-	ABF        AppBuildFunc
+	Profile        string
+	DefaultClients int
+	MinimalClients int
+	OptimalWS      int
+	BaseTickMs     int
+	ABF            AppBuildFunc
 }
 
 //Init set server param
@@ -101,7 +104,7 @@ func JoinSession(clientID int) *er.Err {
 
 	_currentSession.clients[clientID] = c
 
-	if len(_currentSession.clients) == _param.CPS {
+	if len(_currentSession.clients) == _param.DefaultClients {
 
 		_log.Inf("session %v has sufficient user joined, is to be started", _currentSession.id)
 		_sMutex.Lock()
@@ -160,5 +163,5 @@ func BindNetConn(clientID int, net NetConn) error {
 }
 
 func validate(p *SSrvParam) bool {
-	return p.ABF != nil && p.BaseTickMs > 0 && p.CPS > 0
+	return p.ABF != nil && p.BaseTickMs > 0 && p.DefaultClients > 0 && p.MinimalClients > 0
 }
