@@ -2,44 +2,41 @@ package sgs
 
 import (
 	"hlf"
-	"sgs/ssvr"
-	"sgs/web"
 )
 
-var _log hlf.Logger = hlf.MakeLogger("SGS Runner")
+var _log hlf.Logger = hlf.MakeLogger("SGS")
 
 //Run turn on the sgs servers
-func Run(abf ssvr.AppBuildFunc) error {
+func Run(abf AppBuildFunc) error {
 
-	_log.Inf("Starting SGS servers...")
+	_log.Inf("Starting SGS...")
 
 	c := loadConf("./sgs.conf")
 
-	e := ssvr.Init(ssvr.SSrvParam{
+	e := initSSrv(SSrvParam{
 		Profile:        c.App.Profile,
 		DefaultClients: c.App.DefaultClients,
 		MinimalClients: c.App.MinimalClients,
 		OptimalWS:      c.App.OptimalWaitSecond,
-		BaseTickMs:     c.Session.BaseTickMs,
+		BaseTickMs:     c.BaseTickMs,
 		ABF:            abf,
 	})
 
 	if e != nil {
-		_log.Err("Failed to start SSVR, SGS shut down")
+		_log.Err("Failed to init SSVR, SGS shut down")
 		return e
 	}
 
-	e = web.StartUp(web.WebSrvParam{
-		Port:        c.Web.Port,
-		EPM:         c.Web.EPM,
-		WSReadBuff:  c.Web.WSReadBuff,
-		WSWriteBuff: c.Web.WSWriteBuff,
-	})
+	e = webStartUp(WebSrvParam{
+		Port:        c.Port,
+		WSReadBuff:  c.WSReadBuff,
+		WSWriteBuff: c.WSWriteBuff,
+	}, createSgasPrx())
 
 	if e != nil {
 		_log.Err("Failed to start SGS Web Server, SGS shut down")
 	} else {
-		_log.Inf("SGS servers started")
+		_log.Inf("SGS started")
 	}
 
 	return e

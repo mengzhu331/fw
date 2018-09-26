@@ -1,4 +1,4 @@
-package ssvr
+package sgs
 
 import (
 	"er"
@@ -6,7 +6,7 @@ import (
 
 //App interface for applications
 type App interface {
-	Init(s Session, clientIDs []int) *er.Err
+	Init(s Session, clientIDs []int, profile string) *er.Err
 	SendCommand(command Command) *er.Err
 }
 

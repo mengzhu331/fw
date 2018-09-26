@@ -3,7 +3,7 @@ package main
 import (
 	"er"
 	"hlf"
-	"sgs/ssvr"
+	"sgs"
 	"strconv"
 )
 
@@ -11,7 +11,7 @@ type phaseDataMap map[int]interface{}
 
 type game interface {
 	init(app fwApp) *er.Err
-	sendCommand(command ssvr.Command) *er.Err
+	sendCommand(command sgs.Command) *er.Err
 }
 
 type gameImp struct {
@@ -24,12 +24,12 @@ type gameImp struct {
 	profile string
 }
 
-type execCmd func(*gameImp, ssvr.Command) *er.Err
+type execCmd func(*gameImp, sgs.Command) *er.Err
 
 type enterPhase func(*gameImp)
 
 var _globalCmdMap = map[int]execCmd{
-	ssvr.CMD_APP_RUN: run,
+	sgs.CMD_APP_RUN: run,
 }
 
 var _phaseEnterMap = map[phase]enterPhase{}
@@ -37,7 +37,7 @@ var _phaseEnterMap = map[phase]enterPhase{}
 var _phaseCmdMap = map[phase]map[int]execCmd{}
 
 var _defaultCmdMap = map[int]execCmd{
-	ssvr.CMD_TICK: onTickDefault,
+	sgs.CMD_TICK: onTickDefault,
 }
 
 func (me *gameImp) init(app fwApp) *er.Err {
@@ -77,7 +77,7 @@ func (me *gameImp) init(app fwApp) *er.Err {
 	return e
 }
 
-func (me *gameImp) sendCommand(command ssvr.Command) *er.Err {
+func (me *gameImp) sendCommand(command sgs.Command) *er.Err {
 
 	exec, found := _globalCmdMap[command.ID]
 
@@ -102,7 +102,7 @@ func (me *gameImp) sendCommand(command ssvr.Command) *er.Err {
 
 	return er.Throw(_E_CMD_NOT_EXEC, er.EInfo{
 		"details": "gameImp is not supposed to receive the command",
-		"command": ssvr.CmdHexID(command),
+		"command": command.HexID(),
 		"phase":   me.phs,
 	}).To(me.lg)
 }
@@ -115,7 +115,7 @@ func (me *gameImp) gotoPhase(p phase) {
 	}
 }
 
-func run(me *gameImp, command ssvr.Command) *er.Err {
+func run(me *gameImp, command sgs.Command) *er.Err {
 	me.gotoPhase(_P_GAME_START)
 	return nil
 }
@@ -124,6 +124,6 @@ func makeGame() game {
 	return &gameImp{}
 }
 
-func onTickDefault(me *gameImp, command ssvr.Command) *er.Err {
+func onTickDefault(me *gameImp, command sgs.Command) *er.Err {
 	return nil
 }

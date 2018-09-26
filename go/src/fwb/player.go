@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"er"
 	"hlf"
-	"sgs/ssvr"
+	"sgs"
 )
 
 type player interface {
 	init(app fwApp, id int)
-	sendCommand(command ssvr.Command) *er.Err
+	sendCommand(command sgs.Command) *er.Err
 }
 
 type playerImp struct {
@@ -25,8 +25,8 @@ func (me *playerImp) init(app fwApp, id int) {
 	me.lg = app.getLogger()
 }
 
-func (me *playerImp) sendCommand(command ssvr.Command) *er.Err {
-	if ssvr.CmdInCategory(command, ssvr.CMD_C_APP_TO_CLIENT) {
+func (me *playerImp) sendCommand(command sgs.Command) *er.Err {
+	if command.InCategory(sgs.CMD_C_APP_TO_CLIENT) {
 		pld, e := json.Marshal(command.Payload)
 		if e != nil {
 			return er.Throw(_E_CMD_PAYLOAD_NOT_ENCODABLE, er.EInfo{
@@ -35,14 +35,14 @@ func (me *playerImp) sendCommand(command ssvr.Command) *er.Err {
 			}).To(me.lg)
 		}
 
-		return me.app.getSession().ForwardToClient(ssvr.Command{
-			ID:      ssvr.CMD_FORWARD_TO_CLIENT,
+		return me.app.getSession().ForwardToClient(sgs.Command{
+			ID:      sgs.CMD_FORWARD_TO_CLIENT,
 			Payload: pld,
 		})
 	}
 
-	if command.ID == ssvr.CMD_FORWARD_TO_APP {
-		actualCmd := ssvr.Command{}
+	if command.ID == sgs.CMD_FORWARD_TO_APP {
+		actualCmd := sgs.Command{}
 		cmdBytes, ok := command.Payload.([]byte)
 
 		if !ok {
@@ -56,7 +56,7 @@ func (me *playerImp) sendCommand(command ssvr.Command) *er.Err {
 
 		if e != nil {
 			return er.Throw(_E_CMD_PAYLOAD_NOT_DECODABLE, er.EInfo{
-				"details": "payload with command sent to app is not able to be decoded to ssvr.Command",
+				"details": "payload with command sent to app is not able to be decoded to sgs.Command",
 				"payload": command.Payload,
 			}).To(me.lg)
 		}
@@ -66,7 +66,7 @@ func (me *playerImp) sendCommand(command ssvr.Command) *er.Err {
 
 	return er.Throw(_E_CMD_NOT_EXEC, er.EInfo{
 		"details": "playerImp is not supposed to receive the command",
-		"command": ssvr.CmdHexID(command),
+		"command": command.HexID(),
 	})
 }
 

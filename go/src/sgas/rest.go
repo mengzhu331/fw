@@ -160,10 +160,10 @@ func vclientRest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	valid := ValidateToken(cid, token[0])
+	username, valid := ValidateToken(cid, token[0])
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(strconv.FormatBool(valid)))
+	w.Write([]byte(username))
 
 	_log.Inf("Validate client ID finish, validity %v", valid)
 	return

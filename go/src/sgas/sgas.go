@@ -71,19 +71,19 @@ func Logout(username string, clientID int, token string) *er.Err {
 }
 
 //ValidateToken validate a client token
-func ValidateToken(clientID int, token string) bool {
+func ValidateToken(clientID int, token string) (string, bool) {
 	_cMtx.RLock()
 	defer _cMtx.RUnlock()
 
 	for _, c := range _clients {
 		if c.id == clientID {
 			if c.token == token {
-				return true
+				return c.username, true
 			}
-			return false
+			return "", false
 		}
 	}
-	return false
+	return "", false
 }
 
 func makeToken() string {
