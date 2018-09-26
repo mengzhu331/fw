@@ -27,11 +27,14 @@ func Run(abf AppBuildFunc) error {
 		return e
 	}
 
+	sgasPrx := createSgasPrx()
+	sgasPrx.setServerURI(c.AuthSrvURI)
+
 	e = webStartUp(WebSrvParam{
 		Port:        c.Port,
 		WSReadBuff:  c.WSReadBuff,
 		WSWriteBuff: c.WSWriteBuff,
-	}, createSgasPrx())
+	}, sgasPrx)
 
 	if e != nil {
 		_log.Err("Failed to start SGS Web Server, SGS shut down")

@@ -18,6 +18,7 @@ type conf struct {
 	WSReadBuff  int
 	WSWriteBuff int
 	BaseTickMs  int
+	AuthSrvURI  string
 	App         appConf
 }
 
@@ -26,7 +27,7 @@ var _defaultConf = conf{
 	WSReadBuff:  1024,
 	WSWriteBuff: 1024,
 	BaseTickMs:  100,
-
+	AuthSrvURI:  "http://127.0.0.1:3115",
 	App: appConf{
 		Profile:           "2pvp",
 		DefaultClients:    2,
