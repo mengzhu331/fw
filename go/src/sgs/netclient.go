@@ -4,7 +4,6 @@ package sgs
 type NetConn interface {
 	Send(cmd Command) error
 	Run(ch chan Command, mch chan Command)
-	BindClientID(clientID int)
 }
 
 type netClient struct {
@@ -21,11 +20,6 @@ func (me *netClient) send(cmd Command) error {
 
 func (me *netClient) run(ch chan Command) {
 	go me.conn.Run(ch, me.mch)
-}
-
-func (me *netClient) bindClientID(clientID int) {
-	me.id = clientID
-	me.conn.BindClientID(clientID)
 }
 
 func (me *netClient) close() {

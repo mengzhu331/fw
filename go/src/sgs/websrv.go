@@ -72,7 +72,6 @@ func joinSessionRest(w http.ResponseWriter, r *http.Request) {
 	var conn *websocket.Conn
 	var err error
 	var icid int
-	var client *netClient
 
 	sutil.EnableCors(&w)
 
@@ -103,17 +102,9 @@ func joinSessionRest(w http.ResponseWriter, r *http.Request) {
 		goto __failtoconnectws
 	}
 
-	client = &netClient{
-		id:       icid,
-		username: username[0],
-		s:        nil,
-		conn: &wsConn{
-			conn: conn,
-		},
-		mch: make(chan Command),
-	}
-
-	err = joinSessionQueue(client)
+	err = joinSessionQueue(username[0], icid, &wsConn{
+		clientId: icid,
+		conn:     conn})
 
 	if err != nil {
 		_log.Err("Failed to join session")

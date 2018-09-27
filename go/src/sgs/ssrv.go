@@ -49,8 +49,8 @@ func initSSrv(param SSrvParam) error {
 	return nil
 }
 
-func joinSessionQueue(client *netClient) *er.Err {
-	_log.Inf("Client %v requested to join session queue", client.id)
+func joinSessionQueue(username string, clientID int, conn NetConn) *er.Err {
+	_log.Inf("Client %v requested to join session queue", clientID)
 
 	_csMutex.Lock()
 	defer _csMutex.Unlock()
@@ -62,7 +62,7 @@ func joinSessionQueue(client *netClient) *er.Err {
 		_log.Inf("Created new session %v", _sessionID)
 	}
 
-	c, found := _currentSession.clients[client.id]
+	c, found := _currentSession.clients[clientID]
 
 	if found {
 		_log.Ntf("already added to session %v, duplicated request", c)
@@ -71,7 +71,7 @@ func joinSessionQueue(client *netClient) *er.Err {
 
 	_cMutex.Lock()
 	var s int
-	s, found = _clients[client.id]
+	s, found = _clients[clientID]
 	_cMutex.Unlock()
 
 	if found {
@@ -86,12 +86,18 @@ func joinSessionQueue(client *netClient) *er.Err {
 		if founds {
 			return er.Throw(_E_CLIENT_ALREADY_JOIN_SESSION, er.EInfo{
 				"details": "client duplicated join session request",
-				"client":  strconv.Itoa(client.id),
+				"client":  strconv.Itoa(clientID),
 			})
 		}
 	}
 
-	_currentSession.clients[client.id] = *client
+	_currentSession.clients[clientID] = netClient{
+		id:       clientID,
+		username: username,
+		s:        nil,
+		conn:     conn,
+		mch:      make(chan Command),
+	}
 
 	if len(_currentSession.clients) == _param.DefaultClients {
 

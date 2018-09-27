@@ -13,7 +13,7 @@ var _sessionID int = 0x2000
 //Session session interface for users
 type Session interface {
 	CmdChan() chan Command
-	ForwardToClient(command Command) *er.Err
+	ForwardToClient(cid int, command Command) *er.Err
 	GetLogger() hlf.Logger
 }
 
@@ -41,8 +41,26 @@ func (me *session) CmdChan() chan Command {
 	return me.cch
 }
 
-func (me *session) ForwardToClient(command Command) *er.Err {
-	return execForwardToClient(me, command)
+func (me *session) ForwardToClient(cid int, command Command) *er.Err {
+	client, found := me.clients[cid]
+
+	if !found {
+		return er.Throw(_E_SESSION_INVALID_CLIENT, er.EInfo{
+			"details": "invalid client to forward",
+			"client":  cid,
+		}).To(me.lg)
+	}
+
+	err := client.send(command)
+
+	if err != nil {
+		return er.Throw(_E_CLIENT_CONNECTION_FAIL, er.EInfo{
+			"details": "failed to interact with client",
+			"client":  cid,
+		}).To(me.lg)
+	}
+
+	return nil
 }
 
 func (me *session) GetLogger() hlf.Logger {
@@ -171,25 +189,7 @@ func execForwardToClient(s *session, command Command) *er.Err {
 		}).To(s.lg)
 	}
 
-	client, found := s.clients[pl.ClientID]
-
-	if !found {
-		return er.Throw(_E_SESSION_INVALID_CLIENT, er.EInfo{
-			"details": "invalid client to forward",
-			"client":  pl.ClientID,
-		}).To(s.lg)
-	}
-
-	err = client.send(pl.Cmd)
-
-	if err != nil {
-		return er.Throw(_E_CLIENT_CONNECTION_FAIL, er.EInfo{
-			"details": "failed to interact with client",
-			"client":  pl.ClientID,
-		}).To(s.lg)
-	}
-
-	return nil
+	return s.ForwardToClient(pl.ClientID, pl.Cmd)
 }
 
 func makeSession(sessionID int) *session {

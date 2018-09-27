@@ -53,8 +53,3 @@ __close:
 	me.conn.Close()
 	_log.Inf("WS closed: %v", me.clientId)
 }
-
-func (me *wsConn) BindClientID(clientID int) {
-	_log.Inf("WS connection is binded to client: %v", clientID)
-	me.clientId = clientID
-}
