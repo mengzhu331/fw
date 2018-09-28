@@ -2,27 +2,36 @@ package sgs
 
 import (
 	"er"
+	"hlf"
 	"strconv"
 	"sync"
 )
 
-var _param SSrvParam
-
-var _slog = _log.Child("Sessions")
+var _serverID = 0x6000
+var _serverIDMutex = sync.Mutex{}
 
 type clientMap map[int]int
 
-var _clients = make(clientMap)
+type sessionServer struct {
+	id    int
+	param *SSrvParam
 
-var _cMutex = sync.RWMutex{}
+	lg hlf.Logger
 
-var _csMutex sync.Mutex
+	clients clientMap
 
-var _currentSession *session
+	clientsMutex sync.RWMutex
 
-var _sessions = make(map[int]*session)
+	currentSession *session
 
-var _sMutex sync.Mutex
+	currentSessionMutex sync.Mutex
+
+	sessions map[int]*session
+
+	sessionsMutex sync.RWMutex
+
+	sessionID int
+}
 
 //SSrvParam parameters for the server
 type SSrvParam struct {
@@ -36,52 +45,77 @@ type SSrvParam struct {
 	WSWriteBuff    int
 }
 
-func initSSrv(param SSrvParam) error {
-	_log.Inf("Starting SSVR...")
+func makeSSrv(param SSrvParam) (*sessionServer, error) {
+	_log.Inf("Init SSVR...")
+
 	if !validate(&param) {
-		return er.Throw(_E_INVALID_SERVER_PARAM, er.EInfo{
+		return nil, er.Throw(_E_INVALID_SERVER_PARAM, er.EInfo{
 			"details": "invalid server parameters used for SSVR",
 			"param":   param,
 		}).To(_log)
 	}
-	_param = param
-	_log.Inf("SSVR started")
-	return nil
+
+	server := &sessionServer{}
+
+	_serverIDMutex.Lock()
+	_serverID++
+	server.id = _serverID
+	_serverIDMutex.Unlock()
+
+	server.param = &param
+
+	server.sessionID = 0x2000
+
+	server.lg = hlf.MakeLogger("SSRV" + strconv.Itoa(server.id))
+
+	server.clients = make(clientMap)
+
+	server.clientsMutex = sync.RWMutex{}
+
+	server.currentSessionMutex = sync.Mutex{}
+
+	server.currentSession = nil
+
+	server.sessions = make(map[int]*session)
+
+	server.sessionsMutex = sync.RWMutex{}
+
+	_log.Inf("Init SSVR successful")
+	return server, nil
 }
 
-func joinSessionQueue(username string, clientID int, conn NetConn) *er.Err {
-	_log.Inf("Client %v requested to join session queue", clientID)
+func (me *sessionServer) joinSessionQueue(username string, clientID int, conn NetConn) *er.Err {
+	me.lg.Inf("Client %v requested to join session queue", clientID)
 
-	_csMutex.Lock()
-	defer _csMutex.Unlock()
+	me.currentSessionMutex.Lock()
+	defer me.currentSessionMutex.Unlock()
 
-	if _currentSession == nil {
-		_sessionID++
-		_currentSession = makeSession(_sessionID)
+	if me.currentSession == nil {
+		me.sessionID++
+		me.currentSession = makeSession(me.sessionID, me)
 
-		_log.Inf("Created new session %v", _sessionID)
+		me.lg.Inf("Created new session %v", me.sessionID)
 	}
 
-	c, found := _currentSession.clients[clientID]
+	c, found := me.currentSession.clients[clientID]
 
 	if found {
-		_log.Ntf("already added to session %v, duplicated request", c)
+		me.lg.Ntf("already added to session %v, duplicated request", c)
 		return nil
 	}
 
-	_cMutex.Lock()
+	me.clientsMutex.RLock()
 	var s int
-	s, found = _clients[clientID]
-	_cMutex.Unlock()
+	s, found = me.clients[clientID]
+	me.clientsMutex.RUnlock()
 
 	if found {
-
-		_sMutex.Lock()
-		sess, founds := _sessions[s]
+		me.sessionsMutex.Lock()
+		sess, founds := me.sessions[s]
 		if founds {
 			founds = !sess.closed
 		}
-		_sMutex.Unlock()
+		me.sessionsMutex.Unlock()
 
 		if founds {
 			return er.Throw(_E_CLIENT_ALREADY_JOIN_SESSION, er.EInfo{
@@ -91,7 +125,7 @@ func joinSessionQueue(username string, clientID int, conn NetConn) *er.Err {
 		}
 	}
 
-	_currentSession.clients[clientID] = netClient{
+	me.currentSession.clients[clientID] = &netClient{
 		id:       clientID,
 		username: username,
 		s:        nil,
@@ -99,88 +133,105 @@ func joinSessionQueue(username string, clientID int, conn NetConn) *er.Err {
 		mch:      make(chan Command),
 	}
 
-	if len(_currentSession.clients) == _param.DefaultClients {
+	if len(me.currentSession.clients) == me.param.DefaultClients {
 
-		_log.Inf("session %v has sufficient user joined, is to be started", _currentSession.id)
-		_sMutex.Lock()
-		_sessions[_currentSession.id] = _currentSession
-		_sMutex.Unlock()
-		if !startSession(_currentSession) {
-			closeSession(_currentSession)
+		me.lg.Inf("session %v has sufficient user joined, is to be started", me.currentSession.id)
+		me.sessionsMutex.Lock()
+		me.sessions[me.currentSession.id] = me.currentSession
+		me.sessionsMutex.Unlock()
+
+		me.clientsMutex.Lock()
+		for _, c := range me.currentSession.clients {
+			me.clients[c.id] = me.currentSession.id
 		}
-		_currentSession = nil
+		me.clientsMutex.Unlock()
 
+		if !me.startSession(me.currentSession) {
+			me.closeSession(me.currentSession)
+		}
+		me.currentSession = nil
 	}
 	return nil
 }
 
-func quitSessionQueue(clientID int) *er.Err {
-	_log.Inf("Client %v requested to quit session queue", clientID)
-	_csMutex.Lock()
-	defer _csMutex.Unlock()
+func (me *sessionServer) quitSessionQueue(clientID int) *er.Err {
+	me.lg.Inf("Client %v requested to quit session queue", clientID)
 
-	c, found := _currentSession.clients[clientID]
+	me.currentSessionMutex.Lock()
+	defer me.currentSessionMutex.Unlock()
 
-	if !found {
+	if me.currentSession == nil || me.currentSession.clients[clientID] == nil {
 		return er.Throw(_E_QUIT_SESSION_QUEUE_INVALID, er.EInfo{
 			"details": "quit request from client not in session queue",
 			"client":  clientID,
-		}).To(_log)
+		}).To(me.lg)
 	}
 
-	c.close()
-
-	delete(_currentSession.clients, clientID)
+	delete(me.currentSession.clients, clientID)
 	return nil
 }
 
-func reconnectClient(clientID int, conn NetConn) *er.Err {
-	_log.Inf("Client %v reconnect")
-	_csMutex.Lock()
-	c, found := _currentSession.clients[clientID]
-	if found {
+func (me *sessionServer) reconnectClient(clientID int, conn NetConn) *er.Err {
+	me.lg.Inf("Client %v reconnect", clientID)
+
+	me.currentSessionMutex.Lock()
+
+	if me.currentSession != nil && me.currentSession.clients[clientID] != nil {
+		c := me.currentSession.clients[clientID]
 		c.conn = conn
-		_currentSession.clients[clientID] = c
-		_csMutex.Unlock()
+		me.currentSession.clients[clientID] = c
+		me.currentSessionMutex.Unlock()
 		return nil
 	}
-	_csMutex.Unlock()
+	me.currentSessionMutex.Unlock()
 
-	_cMutex.Lock()
-	defer _cMutex.Unlock()
+	me.clientsMutex.Lock()
 
-	_, found = _clients[clientID]
+	sid, found := me.clients[clientID]
+	me.clientsMutex.Unlock()
+
 	if !found {
 		return er.Throw(_E_CLIENT_FAILE_RECONNECT, er.EInfo{
 			"details": "reconnect client not in session",
 			"client":  clientID,
-		}).To(_log)
+		}).To(me.lg)
 	}
 
-	c.s.mch <- Command{
+	me.sessionsMutex.Lock()
+	s := me.sessions[sid]
+	me.sessionsMutex.Unlock()
+
+	if s == nil {
+		return er.Throw(_E_INVALID_SESSION_ID, er.EInfo{
+			"details": "invalid session id",
+		}).To(me.lg)
+	}
+
+	s.mch <- Command{
 		ID:      _CMD_CLIENT_RECONNECT,
+		Source:  clientID,
 		Payload: conn,
 	}
 	return nil
 }
 
-func startSession(s *session) bool {
-	err := s.run()
+func (me *sessionServer) startSession(s *session) bool {
+	err := s.run(me.param.ABF, me.param.Profile)
 	fail := (err.Code() & er.E_IMPORTANCE) >= er.IMPT_UNRECOVERABLE
 	return !fail
 }
 
-func closeSession(s *session) {
-	_log.Inf("Closing session %v...", s.id)
+func (me *sessionServer) closeSession(s *session) {
+	me.lg.Inf("Closing session %v...", s.id)
 
-	_cMutex.Lock()
+	me.clientsMutex.Lock()
 	for _, c := range s.clients {
 		c.close()
-		delete(_clients, c.id)
+		delete(me.clients, c.id)
 	}
-	_cMutex.Unlock()
+	me.clientsMutex.Unlock()
 
-	_log.Inf("Session %v closed", s.id)
+	me.lg.Inf("Session %v closed", s.id)
 }
 
 func validate(p *SSrvParam) bool {

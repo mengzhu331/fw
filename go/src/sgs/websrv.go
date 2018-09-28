@@ -102,7 +102,7 @@ func joinSessionRest(w http.ResponseWriter, r *http.Request) {
 		goto __failtoconnectws
 	}
 
-	err = joinSessionQueue(username[0], icid, &wsConn{
+	err = _srv.joinSessionQueue(username[0], icid, &wsConn{
 		clientId: icid,
 		conn:     conn})
 
@@ -174,7 +174,7 @@ func quitSessionRest(w http.ResponseWriter, r *http.Request) {
 		goto __failtovalidateclient
 	}
 
-	err = quitSessionQueue(icid)
+	err = _srv.quitSessionQueue(icid)
 
 	if err != nil {
 		_log.Err("Failed to quit session")
@@ -245,7 +245,7 @@ func reconnectClientRest(w http.ResponseWriter, r *http.Request) {
 		goto __failtoconnectws
 	}
 
-	err = reconnectClient(icid, &wsConn{
+	err = _srv.reconnectClient(icid, &wsConn{
 		conn: conn,
 	})
 
@@ -290,8 +290,8 @@ __failtovalidateclient:
 
 func makeWSConnection(w http.ResponseWriter, r *http.Request) (*websocket.Conn, error) {
 	upgrader := websocket.Upgrader{
-		ReadBufferSize:  _param.WSReadBuff,
-		WriteBufferSize: _param.WSWriteBuff,
+		ReadBufferSize:  _srv.param.WSReadBuff,
+		WriteBufferSize: _srv.param.WSWriteBuff,
 		CheckOrigin:     func(*http.Request) bool { return true },
 	}
 

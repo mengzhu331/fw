@@ -5,6 +5,7 @@ import (
 )
 
 var _log hlf.Logger = hlf.MakeLogger("SGS")
+var _srv *sessionServer
 
 //Run turn on the sgs servers
 func Run(abf AppBuildFunc) error {
@@ -13,7 +14,8 @@ func Run(abf AppBuildFunc) error {
 
 	c := loadConf("./sgs.conf")
 
-	e := initSSrv(SSrvParam{
+	var e error
+	_srv, e = makeSSrv(SSrvParam{
 		Profile:        c.App.Profile,
 		DefaultClients: c.App.DefaultClients,
 		MinimalClients: c.App.MinimalClients,

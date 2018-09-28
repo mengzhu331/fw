@@ -8,8 +8,6 @@ import (
 	"time"
 )
 
-var _sessionID int = 0x2000
-
 //Session session interface for users
 type Session interface {
 	CmdChan() chan Command
@@ -22,7 +20,7 @@ type session struct {
 	cch chan Command
 	mch chan Command
 
-	clients map[int]netClient
+	clients map[int]*netClient
 	app     App
 	closed  bool
 
@@ -35,6 +33,7 @@ type commandMap map[int]func(*session, Command) *er.Err
 var _cm = commandMap{
 	CMD_FORWARD_TO_APP:    execForwardToApp,
 	CMD_FORWARD_TO_CLIENT: execForwardToClient,
+	_CMD_CLIENT_RECONNECT: execClientReconnect,
 }
 
 func (me *session) CmdChan() chan Command {
@@ -67,7 +66,7 @@ func (me *session) GetLogger() hlf.Logger {
 	return me.lg
 }
 
-func (me *session) run() *er.Err {
+func (me *session) run(abf AppBuildFunc, profile string) *er.Err {
 
 	me.lg.Inf("Starting session %v", me.id)
 
@@ -79,9 +78,9 @@ func (me *session) run() *er.Err {
 		clients = append(clients, c.id)
 	}
 
-	me.app = _param.ABF()
+	me.app = abf()
 
-	err := me.app.Init(me, clients, _param.Profile)
+	err := me.app.Init(me, clients, profile)
 	if (err.Code() & er.E_IMPORTANCE) >= er.IMPT_UNRECOVERABLE {
 		me.lg.Err("Session failed to start due to application failed to init")
 		return err
@@ -103,6 +102,14 @@ func sessionRoutine(me *session) {
 	t := time.Now()
 	for {
 		select {
+		case mc := <-me.mch:
+			me.lg.Dbg("receive management: %v %v %v", mc.HexID, mc.Source, mc.Payload)
+
+			err := me.exec(mc)
+			if (err.Code() & er.E_IMPORTANCE) >= er.IMPT_UNRECOVERABLE {
+				goto __close
+			}
+
 		case <-time.After(time.Duration(me.baseTickMs) * time.Millisecond):
 			tt := time.Now()
 			dms := int(tt.Sub(t) / time.Millisecond)
@@ -192,15 +199,22 @@ func execForwardToClient(s *session, command Command) *er.Err {
 	return s.ForwardToClient(pl.ClientID, pl.Cmd)
 }
 
-func makeSession(sessionID int) *session {
-	_slog.Dbg("Make session: ID %v baseTickMs %v", sessionID, _param.BaseTickMs)
+func execClientReconnect(s *session, command Command) *er.Err {
+	s.lg.Dbg("Client reconnect: client %v", command.Source)
+
+	return s.app.SendCommand(command)
+}
+
+func makeSession(sessionID int, ssrv *sessionServer) *session {
+	ssrv.lg.Dbg("Make session: ID %v baseTickMs %v", sessionID, ssrv.param.BaseTickMs)
 
 	return &session{
 		id:      sessionID,
 		cch:     make(chan Command),
-		clients: make(map[int]netClient),
+		mch:     make(chan Command),
+		clients: make(map[int]*netClient),
 
-		baseTickMs: _param.BaseTickMs,
-		lg:         _slog.Child("Session " + strconv.Itoa(_sessionID)),
+		baseTickMs: ssrv.param.BaseTickMs,
+		lg:         ssrv.lg.Child("Session " + strconv.Itoa(sessionID)),
 	}
 }
