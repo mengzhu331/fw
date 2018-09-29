@@ -101,6 +101,7 @@ type scriptedPlayer struct {
 	s        script
 	rl       *resLogger
 	srv      *sessionServer
+	lg       hlf.Logger
 }
 
 func makePlayer(username string, clientID int, rl *resLogger, srv *sessionServer) *scriptedPlayer {
@@ -112,6 +113,7 @@ func makePlayer(username string, clientID int, rl *resLogger, srv *sessionServer
 		srv:      srv,
 	}
 	player.conn.player = &player
+	player.lg = srv.lg.Child(username)
 	return &player
 }
 
@@ -135,6 +137,7 @@ func (me *scriptedPlayer) run(t *testing.T) {
 }
 
 func (me *scriptedPlayer) sendCommand(command Command) {
+	me.lg.Inf("Command received: 0x%x, %v", command.ID, command.Source)
 	me.rl.ch <- command
 }
 
@@ -190,7 +193,7 @@ func (me commandLog) conformTo(cl commandLog) bool {
 	for i := 0; i < len(me); i++ {
 		found := false
 		for j := 0; j < len(cl); j++ {
-			if cl[j].id == me[i].id && cl[j].client == me[i].client && math.Abs(float64(cl[j].t-me[i].t)) < 300 {
+			if cl[j].id == me[i].id && cl[j].client == me[i].client && math.Abs(float64(cl[j].t-me[i].t)) < 1200 {
 				cl = append(cl[:j], cl[j+1:]...)
 				found = true
 				break
@@ -207,7 +210,7 @@ func (me commandLog) conformTo(cl commandLog) bool {
 func (me commandLog) String() string {
 	s := fmt.Sprintf("[\n")
 	for _, cl := range me {
-		s += fmt.Sprintf("Command 0x%x, Client %v, Time %v", cl.id, cl.client, cl.t)
+		s += fmt.Sprintf("Command 0x%x, Client %v, Time %v\n", cl.id, cl.client, cl.t)
 	}
 	s += fmt.Sprintf("]")
 	return s

@@ -29,6 +29,8 @@ func TestScript4(t *testing.T) {
 		{3000, scriptedJSQ, &tr},
 	}
 
+	lg := _log.Child("script4")
+
 	go rl.run()
 	go p1.run(t)
 	go p2.run(t)
@@ -38,14 +40,17 @@ func TestScript4(t *testing.T) {
 	rl.mch <- "quit"
 
 	<-time.After(time.Duration(50) * time.Millisecond)
-	if !rl.cl.conformTo(commandLog{
+	expected := commandLog{
 		commandLE{3000, _CMD_INIT_APP, 22},
 		commandLE{3000, _CMD_INIT_APP, 33},
 		commandLE{3000, CMD_APP_RUN, 22},
 		commandLE{3000, CMD_APP_RUN, 33},
 		commandLE{6000, _CMD_CLIENT_RECONNECT, 33},
 		commandLE{6000, _CMD_CLIENT_RECONNECT, 22},
-	}) {
+	}
+	if !rl.cl.conformTo(expected) {
+		lg.Ntf(rl.cl.String())
+		lg.Ntf(expected.String())
 		t.Errorf("Command Log does not conform to expectation")
 	}
 
