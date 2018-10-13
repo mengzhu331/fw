@@ -13,6 +13,7 @@ type Session interface {
 	CmdChan() chan Command
 	ForwardToClient(cid int, command Command) *er.Err
 	GetLogger() hlf.Logger
+	GetClientName(cid int) string
 }
 
 type session struct {
@@ -34,10 +35,25 @@ var _cm = commandMap{
 	CMD_FORWARD_TO_APP:    execForwardToApp,
 	CMD_FORWARD_TO_CLIENT: execForwardToClient,
 	_CMD_CLIENT_RECONNECT: execClientReconnect,
+	CMD_APP_CLOSE:         execAppClose,
 }
 
 func (me *session) CmdChan() chan Command {
 	return me.cch
+}
+
+func (me *session) GetClientName(cid int) string {
+	client, found := me.clients[cid]
+	if !found {
+		er.Throw(_E_REQUEST_WITH_INVALID_CLIENT_ID, er.EInfo{
+			"details":  "invalid client ID when invoking GetClientName()",
+			"clientid": cid,
+		})
+
+		return "unknown"
+	}
+
+	return client.username
 }
 
 func (me *session) ForwardToClient(cid int, command Command) *er.Err {
@@ -203,6 +219,11 @@ func execClientReconnect(s *session, command Command) *er.Err {
 	s.lg.Dbg("Client reconnect: client %v", command.Source)
 
 	return s.app.SendCommand(command)
+}
+
+func execAppClose(s *session, command Command) *er.Err {
+	s.closed = true
+	return nil
 }
 
 func makeSession(sessionID int, ssrv *sessionServer) *session {

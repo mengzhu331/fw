@@ -17,6 +17,9 @@ const (
 	_CMD_CLOSE_NET_CLIENT
 
 	_CMD_CLIENT_RECONNECT
+
+	//CMD_APP_CLOSE notify session App is to be closed
+	CMD_APP_CLOSE
 )
 
 //PlForwardToClient payload for forward to command

@@ -24,6 +24,9 @@ const (
 
 	//CMD_C_APP_TO_CLIENT the command is sent to client from backend app
 	CMD_C_APP_TO_CLIENT = CMD_C_APP | 0x00010000
+
+	//CMD_C_APP_PRIVATE the command is app specific
+	CMD_C_APP_PRIVATE = CMD_C_APP | 0x00020000
 )
 
 //Command common command object

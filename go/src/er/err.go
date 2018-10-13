@@ -14,6 +14,7 @@ type Err struct {
 	callStack  []string
 	stackDepth int
 	info       string
+	next       *Err
 }
 
 func (me *Err) Error() string {
@@ -31,6 +32,15 @@ func (me *Err) Code() int32 {
 	}
 
 	return me.code
+}
+
+//Importance retrieve error importance
+func (me *Err) Importance() int32 {
+	if me == nil {
+		return IMPT_NONE
+	}
+
+	return me.code & E_IMPORTANCE
 }
 
 //DumpCallStack generate a call stack integrated string
@@ -99,6 +109,10 @@ func Throw(code int32, info EInfo) *Err {
 //To log error
 func (me *Err) To(logger hlf.Logger) *Err {
 
+	if me == nil {
+		return me
+	}
+
 	if (me.code | E_IMPORTANCE) >= IMPT_THREAT {
 		logger.Err(me.Error())
 		logger.To("error.log").Err(me.Error() + ", " + me.DumpCallStack(10))
@@ -114,4 +128,29 @@ func (me *Err) To(logger hlf.Logger) *Err {
 	logger.Inf(me.Error())
 	logger.To("exception.log").Inf(me.Error() + ", " + me.DumpCallStack(10))
 	return me
+}
+
+//Push support errors stack, add one error to the top
+func (me *Err) Push(top *Err) *Err {
+	if top == nil {
+		return me
+	}
+
+	prev := &Err{
+		next: me,
+	}
+
+	for prev.next != nil && prev.next.Importance() > top.Importance() {
+		prev = prev.next
+	}
+
+	top.next = prev.next
+	prev.next = top
+
+	return prev.next
+}
+
+//Pop support errors stack, remove the top error
+func (me *Err) Pop() *Err {
+	return me.next
 }

@@ -1,0 +1,108 @@
+//This script makes an image drag and droppable by call makeDraggable(obj)
+//Also if another object has the same id with 'num' appended at the end
+//It moves that object along with image.
+//After it moves an image it attempts to call imageMoved(obj)
+//which you define in your program to do whatever.
+
+var moving=null;
+var moved=false;
+var ie4=document.all;
+var ns6=document.getElementById&&!document.all;
+var left,top,top2,bottom,right;
+var startx,starty;
+var numxoffset,numyoffset;
+var mx,my;
+var mousex,mousey;
+var newdragdrop=1;
+var cardindex=25;
+
+document.onmousemove=mouseMove;
+document.onmouseup=mouseUp;
+
+
+function makeDraggable(obj,card){
+  obj.onmousedown=function(e){
+    if (!e) e=window.event;
+    moving=this;
+    this.style.zIndex=layersindex[4];
+    startx=e.clientX;
+    starty=e.clientY;
+    findEdges();
+    mx=this.offsetLeft-startx-left;
+    my=this.offsetTop-starty-top2;
+    try{
+      var num=document.getElementById(obj.id+'num');
+      obj.numxoffset=num.offsetLeft-obj.offsetLeft;
+      obj.numyoffset=num.offsetTop-obj.offsetTop;
+      num.style.zIndex=layersindex[4];
+    }catch(err){};
+    return false;
+  }
+}
+
+function mouseUp(e){
+  if (moving!=null){
+    if (!e) e=window.event;
+    var x=e.clientX;
+    var y=e.clientY;
+    if ((x!=startx || y!=starty) && moving!=null) {
+      moved=true;
+      try{imageMoved(moving);}
+      catch(err){};
+    }
+    else moved=false;
+    //var index=5;
+    //if (moving.identifier=='resource'||moving.identifier=='livestock'||moving.identifier=='peep') index=10;
+    //if (moving.identifier.indexOf('minor')==-1 && moving.identifier!='occ' && moving.identifier!='occhzt' && moving.identifier!='major') moving.style.zIndex=index;
+    var x=0;
+    try{
+      for (var i=0;i<4;i++)
+        if (findIndex(layers[i],moving.identifier)!=-1) x=i;
+      var index=layersindex[x]++;
+      moving.style.zIndex=index;
+    }catch(err){};
+    try{
+      var num=document.getElementById(moving.id+'num');
+      num.style.zIndex=index;
+    }catch(err){};
+    moving=null;
+  }
+  return false;
+}
+
+function mouseMove(e){
+  if (!e) e=window.event;
+  var x=e.clientX;
+  var y=e.clientY;
+  findEdges();
+  mousex=x+left;
+  mousey=y+top2;
+  //if (x!=startx || y!=starty) moved=true;
+  //document.getElementById('coords').innerHTML="X="+x+",Y="+y;
+  if (moving!=null){
+    moving.style.position="absolute";
+    //moving.style.left=x+left-moving.width/2;
+    //moving.style.top=y+top2-moving.height/2;
+    moving.style.left=x+left+mx;
+    moving.style.top=y+top2+my;
+    try{
+      var num=document.getElementById(moving.id+"num");
+      num.style.position="absolute";
+      //num.style.left=x+left-moving.width/2+moving.numxoffset;
+      //num.style.top=y+top2-moving.height/2+moving.numyoffset;
+      num.style.left=x+left+mx+moving.width;
+      num.style.top=y+top2+my;
+    }catch(err){};
+    return false;
+  }
+}
+
+function findEdges(){
+  right=ie4 && !window.opera? iecompattest().scrollLeft+iecompattest().clientWidth-15 : window.pageXOffset+window.innerWidth-15
+  left=ie4 && !window.opera? iecompattest().scrollLeft : window.pageXOffset
+  top2=ie4 && !window.opera? iecompattest().scrollTop : window.pageYOffset
+  top=top2;
+  bottom=ie4 && !window.opera? iecompattest().scrollTop+iecompattest().clientHeight-15 : window.pageYOffset+window.innerHeight-18 }
+function iecompattest(){
+  return (document.compatMode && document.compatMode!="BackCompat")? document.documentElement : document.body
+}

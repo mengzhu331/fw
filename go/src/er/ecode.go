@@ -58,6 +58,9 @@ const (
 	//EI_INVALID_STATE system internal state is invalid
 	EI_INVALID_STATE
 
+	//EI_INCORRECT_STATIC_DATA static data of the program is incomplete or incorrect
+	EI_INCORRECT_STATIC_DATA
+
 	//EI_INVALID_REQUEST request should not be received according to the system state
 	EI_INVALID_REQUEST
 

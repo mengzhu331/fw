@@ -1,0 +1,247 @@
+
+<!-- saved from url=(0053)http://playagricola.com/Agricola/Board5/allcardsg.php -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta http-equiv="imagetoolbar" content="no"><title>All Cards (G Deck)</title>
+<link rel="stylesheet" type="text/css" href="./All Cards (G Deck)_files/menu.css">
+<script src="./All Cards (G Deck)_files/menu.js.download" type="text/javascript"></script></head><body bgcolor="#ffffff" style="font-family:arial" onload="placeImages()"><div id="dropmenudiv" style="z-Index:1000;visibility:hidden;width:165px;background-color:lightyellow" onmouseover="clearhidemenu()" onmouseout="dynamichide(event)"></div>
+<script src="./All Cards (G Deck)_files/dragdrop.js.download" type="text/javascript"></script>
+<script src="./All Cards (G Deck)_files/functions.js.download" type="text/javascript"></script>
+
+
+
+
+
+<script type="text/javascript">
+
+
+var majorcards=new Array('fireplace1','fireplace2','cookinghearth1','cookinghearth2','well','clayoven','stoneoven','joinery','pottery','basketmakersworkshop');
+
+
+var scale=1; 
+var handnumber=-1 //Don't forget to set different for different htmls 
+try{handnumber=window.opener.mynumber;}catch(err){};
+var bbc=0;
+try{bbc=window.opener.boardcreated;}catch(err){};
+if (handnumber!=-1) {try{document.title+=' [me='+handnumber+']';}catch(err){};}
+
+function placeImages(){ 
+
+newImage('gminor-almanac-j',0,0,0);
+newImage('gminor-animalfarm-j',0,110,0);
+newImage('gminor-bakingfield-j',0,220,0);
+newImage('gminor-barteringhut-j',0,330,0);
+newImage('gminor-beehiveoven-j',0,440,0);
+newImage('gminor-birthstone-j',0,550,0);
+newImage('gminor-bountifulharvest_v2-j',0,660,0);
+newImage('gminor-chronicle_v3-j',0,770,0);
+newImage('gminor-clearcutting_v3-j',0,880,0);
+newImage('gminor-corral-j',0,990,0);
+newImage('gminor-cowbell-j',0,1100,0);
+newImage('gminor-dunghill_v2-j',0,1210,0);
+newImage('gminor-errantoven-j',0,1320,0);
+newImage('gminor-extraeffort-j',0,1430,0);
+newImage('gminor-farmersmarket-j',0,1540,0);
+newImage('gminor-gardeningtools-j',0,1650,0);
+newImage('gminor-gimlet_v2-j',0,1760,0);
+newImage('gminor-grainmarket-j',0,1870,0);
+newImage('gminor-hammer-j',0,1980,0);
+newImage('gminor-harvestfeast-j',0,2090,0);
+newImage('gminor-hayloft_v2-j',0,2200,0);
+newImage('gminor-hiredhelpers_v3-j',0,2310,0);
+newImage('gminor-holidaypresent_v2-j',0,2420,0);
+newImage('gminor-horsebarn-j',0,2530,0);
+newImage('gminor-irrigationcanal-j',0,2640,0);
+newImage('gminor-itinerantlaborers-j',0,2750,0);
+newImage('gminor-magicbeans-j',0,2860,0);
+newImage('gminor-meatpie-j',0,2970,0);
+newImage('gminor-migrantworkers-j',0,3080,0);
+newImage('gminor-paddocks-j',0,3190,0);
+newImage('gminor-peltroof_v3-j',0,3300,0);
+newImage('gminor-pineforest-j',0,3410,0);
+newImage('gminor-plentifulfields-j',0,3520,0);
+newImage('gminor-potterswheel-j',0,3630,0);
+newImage('gminor-privatemarket_v2-j',0,3740,0);
+newImage('gminor-privateschool-j',0,3850,0);
+newImage('gminor-pulley-j',0,3960,0);
+newImage('gminor-pumpkinpie_v2-j',0,4070,0);
+newImage('gminor-reedbeds_v3-j',0,4180,0);
+newImage('gminor-reedsale-j',0,4290,0);
+newImage('gminor-remodeling-j',0,4400,0);
+newImage('gminor-sausagegrinder-j',0,4510,0);
+newImage('gminor-scythe_v2-j',0,4620,0);
+newImage('gminor-seasonalplants_v2-j',0,4730,0);
+newImage('gminor-seedspreader-j',0,4840,0);
+newImage('gminor-sharedwall-j',0,4950,0);
+newImage('gminor-sheepdog-j',0,5060,0);
+newImage('gminor-sheepmarket_v2-j',0,5170,0);
+newImage('gminor-sheepskinrug-j',0,5280,0);
+newImage('gminor-shovel-j',0,5390,0);
+newImage('gminor-sickle-j',0,5500,0);
+newImage('gminor-stonecrane-j',0,5610,0);
+newImage('gminor-stonecuttershall-j',0,5720,0);
+newImage('gminor-stonekitchen_v3-j',0,5830,0);
+newImage('gminor-touristfarm-j',0,5940,0);
+newImage('gminor-treehouse_v2-j',0,6050,0);
+newImage('gminor-vegetablescoop-j',0,6160,0);
+newImage('gminor-wintergarden-j',0,6270,0);
+newImage('gminor-woodenbridge_v2-j',0,6380,0);
+newImage('occ-g1alternativedesigner_v2-j',0,6490,0);
+newImage('occ-g1animalfarmer-j',0,6600,0);
+newImage('occ-g3animalholder-j',0,6710,0);
+newImage('occ-g3apprentice_v2-j',0,6820,0);
+newImage('occ-g1architect_v4-j',0,6930,0);
+newImage('occ-g1artisan_v2-j',0,7040,0);
+newImage('occ-g3astronomer_v2-j',0,7150,0);
+newImage('occ-g4auctioneer_v2-j',0,7260,0);
+newImage('occ-g3bakersdaughter_v2-j',0,7370,0);
+newImage('occ-g4bard-j',0,7480,0);
+newImage('occ-g1businesswoman-j',0,7590,0);
+newImage('occ-g1carrotcakebaker_v2-j',0,7700,0);
+newImage('occ-g1carrotfarmer-j',0,7810,0);
+newImage('occ-g1claystarter-j',0,7920,0);
+newImage('occ-g1earlyriser_v3-j',0,8030,0);
+newImage('occ-g1familycounselor-j',0,8140,0);
+newImage('occ-g3fencehelper-j',0,8250,0);
+newImage('occ-g3fishermansapprentice-j',0,8360,0);
+newImage('occ-g3fishseller-j',0,8470,0);
+newImage('occ-g1foodcritic_v2-j',0,8580,0);
+newImage('occ-g3freeloader_v2-j',0,8690,0);
+
+//newImage('occ-g1germansower-j',0,8690,0);
+
+newImage('occ-g3glassblower-j',0,8800,0);
+newImage('occ-g1glutton-j',0,8910,0);
+newImage('occ-g1grafter-j',0,9020,0);
+
+//newImage('occ-g1graincollector_v2-j',0,9020,0);
+
+newImage('occ-g1grainfarmer-j',0,9130,0);
+newImage('occ-g3grainlover-j',0,9240,0);
+newImage('occ-g3grump-j',0,9350,0);
+newImage('occ-g3harbormaster-j',0,9460,0);
+newImage('occ-g4headmaster_v3-j',0,9570,0);
+newImage('occ-g3helper_v2-j',0,9680,0);
+newImage('occ-g4hermit',0,9790,0);
+
+newImage('occ-g3hobbyist-j',0,9900,0);
+newImage('occ-g1hoemaker_v2-j',0,10010,0);
+newImage('occ-g1inventor-j',0,10120,0);
+newImage('occ-g4jobseeker-j',0,10230,0);
+newImage('occ-g4latebloomer-j',0,10340,0);
+newImage('occ-g4latesleeper_v2-j',0,10450,0);
+newImage('occ-g1masterbakersapprentice-j',0,10560,0);
+newImage('occ-g4mathematician_v5-j',0,10670,0);
+newImage('occ-g1miner-j',0,10780,0);
+newImage('occ-g3mooch_v2-j',0,10890,0);
+newImage('occ-g4oldestoccupation_v3-j',0,11000,0);
+newImage('occ-g4opportunist_v2-j',0,11110,0);
+newImage('occ-g1pearlseeker-j',0,11220,0);
+newImage('occ-g1pilgrim_v2-j',0,11330,0);
+newImage('occ-g4pondwatchman_v2-j',0,11440,0);
+newImage('occ-g1resourcecollector-j',0,11550,0);
+newImage('occ-g4ringmaster-j',0,11660,0);
+newImage('occ-g1seedmaster-j',0,11770,0);
+newImage('occ-g1singer-j',0,11880,0);
+newImage('occ-g3stonedeliveryman-j',0,11990,0);
+newImage('occ-g1stonepiler_v2-j',0,12100,0);
+newImage('occ-g4stonetrader_v2-j',0,12210,0);
+newImage('occ-g3taxcollector_v2-j',0,12320,0);
+newImage('occ-g4truffledigger-j',0,12430,0);
+newImage('occ-g1understudy-j',0,12540,0);
+newImage('occ-g1vegetarian_v2-j',0,12650,0);
+newImage('occ-g3villagefarmer-j',0,12760,0);
+newImage('occ-g1wheedler-j',0,12870,0);
+newImage('occ-g1wintercrafter_v2-j',0,12980,0);
+
+//if (handnumber==-1) shrink(2);
+if (bbc==0 || !(handnumber==0 || handnumber==1 || handnumber==2 || handnumber==3 || handnumber==4)) shrink(2);
+
+ //Above here needs updating
+
+
+  };
+var bmenu=false;
+var father='none';
+var mycolor='white';
+var readyfornewkey=true;
+var ie4=document.all;
+var ns6=document.getElementById&&!document.all;
+if (ie4) document.body.onkeydown=processKeys; //for ie4
+else if (ns6) window.onkeydown=processKeys; // for ns6 send firefox browser keyboard hotkeys to my method
+
+function processKeys(e){
+  if (readyfornewkey){ //prevent double call
+    readyfornewkey=false;
+    setTimeout('readyfornewkey=true;',1);
+    if (!e) e=window.event;
+    var char=e.keyCode;
+    var disablekey=false;
+    //alert(char);
+    if (char==189 || char==188) char=109; //convert IE's minus to firefox minus
+    else if (char==187 || char==107 || char==190) char=61;  //convert IE's plus to firefox plus
+    switch (char){
+      case 61: // '+'
+        shrink(1.11);
+        break;
+      case 109: // '-'
+        shrink(0.9);
+        break;
+    }
+    //checkKey(char);
+    if (disablekey) return false;
+    else return true;
+    }
+  else return true; // else for readyfornewkey
+}
+
+function shrink(factor){
+  scale*=factor;
+  try{
+   window.opener.farmscale2[farmnumber]=scale;
+   //window.opener.farmscale=scale;
+  }catch(err){};
+  var images=document.getElementsByTagName('img');
+  var index,index2,identifier;
+  for (i=0;i<images.length;i++){
+
+  identifier=images[i].identifier;
+  index=findIndex(sizes,identifier)+1;
+  if (index==0) alert("Can't find size width for "+identifier);
+
+  index2=findIndex(sizes2,identifier)+1;
+  if (index2==0) alert("Can't find size height for "+identifier);
+
+  if (identifier!='free'){
+    images[i].style.height=sizes2[index2]*scale;
+    images[i].style.width=sizes[index]*scale;
+  }
+  else{
+    images[i].style.height=images[i].offsetHeight*factor;
+    images[i].style.width=images[i].offsetWidth*factor; 
+  }
+
+    images[i].xpos=images[i].xpos*factor;
+    images[i].ypos=images[i].ypos*factor;
+    images[i].style.left=images[i].xpos;
+    images[i].style.top=images[i].ypos;
+
+
+//    images[i].style.left=images[i].offsetLeft*factor;
+//    images[i].style.top=images[i].offsetTop*factor;
+    if (images[i].numbered){
+      var imagediv=document.getElementById(images[i].id+'num'); 
+      imagediv.xpos=imagediv.xpos*factor;
+      imagediv.ypos=imagediv.ypos*factor;
+      imagediv.style.left=imagediv.xpos;
+      imagediv.style.top=imagediv.ypos;
+//      imagediv.style.left=imagediv.offsetLeft*factor;
+//      imagediv.style.top=imagediv.offsetTop*factor;
+    }
+  }
+}
+
+</script>
+
+
+
+
+<img src="./All Cards (G Deck)_files/gminoralmanac.jpg" id="almanac1" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 0px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminoranimalfarm.jpg" id="animalfarm2" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 220px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorbakingfield.jpg" id="bakingfield3" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 440px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorbarteringhut.jpg" id="barteringhut4" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 660px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorbeehiveoven.jpg" id="beehiveoven5" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 880px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorbirthstone.jpg" id="birthstone6" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 1100px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorbountifulharvest_v2.jpg" id="bountifulharvest_v27" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 1320px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorchronicle_v3.jpg" id="chronicle_v38" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 1540px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorclearcutting_v3.jpg" id="clearcutting_v39" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 1760px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorcorral.jpg" id="corral10" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 1980px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorcowbell.jpg" id="cowbell11" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 2200px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminordunghill_v2.jpg" id="dunghill_v212" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 2420px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorerrantoven.jpg" id="errantoven13" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 2640px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorextraeffort.jpg" id="extraeffort14" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 2860px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorfarmersmarket.jpg" id="farmersmarket15" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 3080px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorgardeningtools.jpg" id="gardeningtools16" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 3300px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorgimlet_v2.jpg" id="gimlet_v217" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 3520px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorgrainmarket.jpg" id="grainmarket18" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 3740px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorhammer.jpg" id="hammer19" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 3960px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorharvestfeast.jpg" id="harvestfeast20" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 4180px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorhayloft_v2.jpg" id="hayloft_v221" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 4400px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorhiredhelpers_v3.jpg" id="hiredhelpers_v322" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 4620px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorholidaypresent_v2.jpg" id="holidaypresent_v223" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 4840px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorhorsebarn.jpg" id="horsebarn24" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 5060px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorirrigationcanal.jpg" id="irrigationcanal25" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 5280px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminoritinerantlaborers.jpg" id="itinerantlaborers26" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 5500px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminormagicbeans.jpg" id="magicbeans27" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 5720px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminormeatpie.jpg" id="meatpie28" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 5940px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminormigrantworkers.jpg" id="migrantworkers29" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 6160px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorpaddocks.jpg" id="paddocks30" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 6380px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorpeltroof_v3.jpg" id="peltroof_v331" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 6600px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorpineforest.jpg" id="pineforest32" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 6820px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorplentifulfields.jpg" id="plentifulfields33" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 7040px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorpotterswheel.jpg" id="potterswheel34" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 7260px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorprivatemarket_v2.jpg" id="privatemarket_v235" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 7480px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorprivateschool.jpg" id="privateschool36" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 7700px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorpulley.jpg" id="pulley37" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 7920px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorpumpkinpie_v2.jpg" id="pumpkinpie_v238" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 8140px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorreedbeds_v3.jpg" id="reedbeds_v339" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 8360px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorreedsale.jpg" id="reedsale40" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 8580px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorremodeling.jpg" id="remodeling41" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 8800px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorsausagegrinder.jpg" id="sausagegrinder42" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 9020px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorscythe_v2.jpg" id="scythe_v243" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 9240px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorseasonalplants_v2.jpg" id="seasonalplants_v244" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 9460px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorseedspreader.jpg" id="seedspreader45" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 9680px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorsharedwall.jpg" id="sharedwall46" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 9900px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorsheepdog.jpg" id="sheepdog47" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 10120px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorsheepmarket_v2.jpg" id="sheepmarket_v248" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 10340px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorsheepskinrug.jpg" id="sheepskinrug49" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 10560px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorshovel.jpg" id="shovel50" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 10780px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorsickle.jpg" id="sickle51" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 11000px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorstonecrane.jpg" id="stonecrane52" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 11220px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorstonecuttershall.jpg" id="stonecuttershall53" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 11440px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorstonekitchen_v3.jpg" id="stonekitchen_v354" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 11660px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminortouristfarm.jpg" id="touristfarm55" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 11880px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminortreehouse_v2.jpg" id="treehouse_v256" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 12100px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorvegetablescoop.jpg" id="vegetablescoop57" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 12320px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorwintergarden.jpg" id="wintergarden58" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 12540px; z-index: 10;"><img src="./All Cards (G Deck)_files/gminorwoodenbridge_v2.jpg" id="woodenbridge_v259" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 12760px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1alternativedesigner_v2.jpg" id="g1alternativedesigner_v260" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 12980px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1animalfarmer.jpg" id="g1animalfarmer61" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 13200px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg3animalholder.jpg" id="g3animalholder62" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 13420px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg3apprentice_v2.jpg" id="g3apprentice_v263" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 13640px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1architect_v4.jpg" id="g1architect_v464" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 13860px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1artisan_v2.jpg" id="g1artisan_v265" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 14080px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg3astronomer_v2.jpg" id="g3astronomer_v266" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 14300px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg4auctioneer_v2.jpg" id="g4auctioneer_v267" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 14520px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg3bakersdaughter_v2.jpg" id="g3bakersdaughter_v268" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 14740px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg4bard.jpg" id="g4bard69" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 14960px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1businesswoman.jpg" id="g1businesswoman70" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 15180px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1carrotcakebaker_v2.jpg" id="g1carrotcakebaker_v271" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 15400px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1carrotfarmer.jpg" id="g1carrotfarmer72" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 15620px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1claystarter.jpg" id="g1claystarter73" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 15840px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1earlyriser_v3.jpg" id="g1earlyriser_v374" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 16060px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1familycounselor.jpg" id="g1familycounselor75" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 16280px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg3fencehelper.jpg" id="g3fencehelper76" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 16500px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg3fishermansapprentice.jpg" id="g3fishermansapprentice77" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 16720px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg3fishseller.jpg" id="g3fishseller78" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 16940px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1foodcritic_v2.jpg" id="g1foodcritic_v279" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 17160px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg3freeloader_v2.jpg" id="g3freeloader_v280" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 17380px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg3glassblower.jpg" id="g3glassblower81" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 17600px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1glutton.jpg" id="g1glutton82" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 17820px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1grafter.jpg" id="g1grafter83" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 18040px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1grainfarmer.jpg" id="g1grainfarmer84" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 18260px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg3grainlover.jpg" id="g3grainlover85" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 18480px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg3grump.jpg" id="g3grump86" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 18700px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg3harbormaster.jpg" id="g3harbormaster87" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 18920px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg4headmaster_v3.jpg" id="g4headmaster_v388" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 19140px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg3helper_v2.jpg" id="g3helper_v289" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 19360px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg4hermit.jpg" id="g4hermit90" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 19580px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg3hobbyist.jpg" id="g3hobbyist91" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 19800px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1hoemaker_v2.jpg" id="g1hoemaker_v292" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 20020px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1inventor.jpg" id="g1inventor93" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 20240px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg4jobseeker.jpg" id="g4jobseeker94" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 20460px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg4latebloomer.jpg" id="g4latebloomer95" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 20680px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg4latesleeper_v2.jpg" id="g4latesleeper_v296" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 20900px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1masterbakersapprentice.jpg" id="g1masterbakersapprentice97" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 21120px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg4mathematician_v5.jpg" id="g4mathematician_v598" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 21340px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1miner.jpg" id="g1miner99" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 21560px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg3mooch_v2.jpg" id="g3mooch_v2100" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 21780px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg4oldestoccupation_v3.jpg" id="g4oldestoccupation_v3101" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 22000px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg4opportunist_v2.jpg" id="g4opportunist_v2102" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 22220px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1pearlseeker.jpg" id="g1pearlseeker103" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 22440px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1pilgrim_v2.jpg" id="g1pilgrim_v2104" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 22660px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg4pondwatchman_v2.jpg" id="g4pondwatchman_v2105" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 22880px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1resourcecollector.jpg" id="g1resourcecollector106" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 23100px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg4ringmaster.jpg" id="g4ringmaster107" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 23320px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1seedmaster.jpg" id="g1seedmaster108" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 23540px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1singer.jpg" id="g1singer109" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 23760px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg3stonedeliveryman.jpg" id="g3stonedeliveryman110" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 23980px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1stonepiler_v2.jpg" id="g1stonepiler_v2111" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 24200px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg4stonetrader_v2.jpg" id="g4stonetrader_v2112" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 24420px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg3taxcollector_v2.jpg" id="g3taxcollector_v2113" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 24640px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg4truffledigger.jpg" id="g4truffledigger114" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 24860px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1understudy.jpg" id="g1understudy115" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 25080px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1vegetarian_v2.jpg" id="g1vegetarian_v2116" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 25300px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg3villagefarmer.jpg" id="g3villagefarmer117" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 25520px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1wheedler.jpg" id="g1wheedler118" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 25740px; z-index: 10;"><img src="./All Cards (G Deck)_files/occg1wintercrafter_v2.jpg" id="g1wintercrafter_v2119" style="position: absolute; width: 228px; height: 356px; top: 0px; left: 25960px; z-index: 10;"></body></html>

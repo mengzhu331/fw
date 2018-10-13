@@ -1,0 +1,3160 @@
+var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
+var is_safari = navigator.userAgent.toLowerCase().indexOf('safari/') > -1;
+var chromeadjust=70;
+chromeadjust=0;
+var delay_open = false;
+if (is_chrome) delay_open = true;
+delay_time = 500;
+var remindonharvest=true;
+var alertnext=false;
+var ren=false;
+var renned=false;
+var fieldplaces=new Array(16);
+var cropplaces=new Array(16);
+var dontrecord=false;
+var dontrecord2=false;
+var putmeepsonboard=0;
+var putspinnersonboard=0;
+var winc;
+var guesttype2='';
+var justtook=false;
+
+
+//widths
+var sizes=new Array(
+  'peep',54,'guest',70,'stable',21,'resource',38,'resource2',39,'livestock',24,'livestock2',49,'livestock4',90,'hut',78,'building',78,'field',78,
+  'horizontalfence',75,'verticalfence',16,'card',121,'major',114,'card3',114,'moor',78,'livestock3',49,'livestock5',64,
+  'eminor',114,'iminor',114,'kminor',114,'ominor',114,'zminor',114,'aminor',114,'occ',114,'resource3',38,'block',75,
+  'gminor',114,'xminor',114,'cminor',114,'free',0,'minor',114,'occhzt',178,'czminor',114,'mminor',114,'fminor',114,'yminor',114
+);
+
+//not if changing resource, livestock, or room, change in shift place
+//peep size hard coded into newimage function and agricola.js:savepmf function for meeples
+
+//heights
+var sizes2=new Array(
+  'peep',54,'guest',70,'stable',24,'resource',38,'resource2',39,'livestock',24,'livestock2',32,'livestock4',32,'hut',78,'building',78,'field',78,
+  'horizontalfence',16,'verticalfence',75,'card',183,'major',178,'card3',178,'moor',78,'livestock3',49,'livestock5',64,
+  'eminor',178,'iminor',178,'kminor',178,'ominor',178,'zminor',178,'aminor',178,'occ',178,'resource3',44,'block',300,
+  'gminor',178,'xminor',178,'cminor',178,'free',0,'minor',178,'occhzt',114,'czminor',178,'mminor',178,'fminor',178,'yminor',178
+);
+
+var placements=new Array('fuel',0.05,'forest',0.5,'swamp',0.5,'mminor',0.90,'fminor',0.90,'marker',0.89,
+  'food',0.10,'wood',0.23,'clay',0.36,'reed',0.49,'stone',0.59,'vegtable',0.79,'grain',0.69,'flower',0.89,'sheep',0.25,'horse',0.55,
+  'boar',0.35,'cattle',0.45,'major',0.90,'eminor',0.90,'iminor',0.90,'yminor',0.90,'kminor',0.90,'ominor',0.90,'zminor',0.90,'aminor',0.90,
+  'gminor',0.90,'xminor',0.90,'czminor',0.90,'occ',0.90,'peep',0.25,'stable',0.6,'hut',0.4,'field',0.5,'horizontalfence',0.5,'verticalfence',0.5,'occhzt',0.90
+);
+
+var vplacements=new Array('fuel',0.20,'horse',0.88,'forest',0.5,'swamp',0.5,'mminor',0.10,'fminor',0.10,'marker',0.10,
+  'food',0.10,'wood',0.10,'clay',0.10,'reed',0.10,'stone',0.10,'vegtable',0.10,'grain',0.10,'flower',0.10,'sheep',0.9,
+  'boar',0.9,'cattle',0.9,'major',0.10,'eminor',0.10,'iminor',0.10,'yminor',0.10,'kminor',0.10,'ominor',0.10,'zminor',0.10,'aminor',0.10,
+  'gminor',0.10,'xminor',0.10,'czminor',0.10,'occ',0.10,'peep',0.8,'stable',0.6,'hut',0.6,'field',0.5,'horizontalfence',0.5,'verticalfence',0.5,'occhzt',0.10
+);
+
+var cards2=new Array('eminor','iminor','yminor','kminor','mminor','fminor','ominor','zminor','aminor','czminor','gminor','xminor','cminor','occ','major','occhzt');
+
+var fence0=new Array(60,105,174,210,276,320,391,427);
+var fence1=new Array(0,56,96,162,200,271,311,380,420,486,527,600);
+var fence2=new Array(60,140,247,356,427);
+var fence3=new Array(60,193,300,427);
+var fence4=new Array(0,127,236,344,450,600);
+var fencehx=new Array(39,150,255,362,469);
+var fencehy=new Array(92,192,293,402);
+var fencevx=new Array(15,126,234,339,444,548);
+var fencevy=new Array(110,216,319);
+
+var actionspaces=new Array('BuildRoom','StartPlayer','TakeGrain','Plow','Occupation','DayLaborer','TakeWood','TakeClay','TakeReed','Fishing');
+var actionspaces2=new Array('','StartPlayer','Take3Wood','Take1Stone','Take2Stone','Fences','Borders','TakeRSW','Expand','BuildStall','BuildTroughs','TakeSheepReed','TakeSheepBoar','BuildStables','BuildSpecial','TakeBoarCattle','TakeSheepHorse');
+
+var layers=new Array(); //objects stay in this ordering when placed. layer0 is lowest.
+layers[0]=new Array('block','eminor','iminor','yminor','kminor','mminor','fminor','ominor','zminor','aminor','gminor','xminor','cminor','czminor','occ','major','occhzt');
+layers[1]=new Array('hut','field','moor','building');
+layers[2]=new Array('peep','guest','horizontalfence','verticalfence');
+layers[3]=new Array('resource','resource2','resource3','livestock','livestock2','livestock3','livestock4','livestock5','stable');
+var layersindex=Array(10,400,600,800,1000);
+
+var boardmenus=new Array(
+  'block',51,'building',52,'peep',4,'guest',49,'stable',4,'resource',1,'resource2',1,'resource3',1,'livestock',1,'livestock2',1,'hut',5,'field',4,'occhzt',6,'horizontalfence',3,'verticalfence'
+  ,3,'card',19,'major',6,'card3',19,'card4',19,'eminor',6,'iminor',6,'yminor',6,'kminor',6,'ominor',6,'zminor',6,'occ',6,'minor'
+  ,6,'free',10,'aminor',30,'czminor',6,'gminor',30,'xminor',30,'cminor',30,'moor',4,'livestock3',1,'mminor',6,'fminor',6,'livestock4',1,'livestock5',1
+);
+var farmmenus=new Array(
+  'block',51,'building',53,'peep',8,'guest',8,'stable',4,'resource',2,'resource2',2,'resource3',2,'livestock',2,'livestock2',2,'hut',5,'field',4,'occhzt',7,'horizontalfence',3,'verticalfence'
+  ,3,'card',19,'major',7,'card3',19,'card4',19,'eminor',7,'iminor',7,'yminor',7,'kminor',7,'ominor',7,'zminor',7,'occ',7,'livestock4',2,'livestock5',2,
+  'free',11,'minor',7,'aminor',31,'gminor',31,'xminor',31,'czminor',7,'cminor',31,'moor',42,'livestock3',2,'mminor',7,'fminor',7
+);
+
+var keys1=new Array(87,'wood',67,'clay',82,'reed',83,'stone',71,'grain',76,'flower',86,'vegtable',70,'food',74,'marker',49,'fuel'); //w,c,r,s,g,v,f,j,1
+var keys2=new Array(72,'sheep',79,'boar',65,'cattle',50,'horse'); //h,o,a,2
+var keys3=new Array(73,'field','field',68,'hut','wood',89,'hut','clay',69,'hut','stone',51,'moor','swamp',52,'moor','forest'); //i,d,y,e
+var keys4=new Array(66,'stable',80,'peep',78,'horizontalfence',77,'verticalfence',90,'verticalfence',75,'guest'); //b,p,n,m,z,k
+var keys5=new Array(88,'takewood');
+
+var moors=new Array("S,S,E,F,E,S,F,F,E,E,E,F,F","E,F,F,F,E,S,S,E,E,S,E,F,F","E,E,F,F,F,E,S,E,F,S,S,E,F",
+"E,F,E,S,S,F,E,F,S,F,E,F,E","E,E,E,F,F,S,S,S,F,E,E,F,F","F,F,S,S,F,E,E,S,F,E,E,E,F","E,F,S,E,E,F,S,E,F,E,S,F,F",
+"E,E,E,E,F,F,S,S,F,F,F,S,E","F,F,S,E,E,F,S,S,E,F,F,E,E");
+var moorsx=new Array(37,142,255,358,468,142,255,358,468,142,255,358,468);
+var moorsy=new Array(104,104,104,104,104,208,208,208,208,317,317,317,317);
+
+var paycards=new Array('fireplace1','00200','fireplace2','00300','cookinghearth1','00400','cookinghearth2','00500',
+  'well','01003','clayoven','00301','stoneoven','00103','joinery','02002','pottery','00202','basketmakersworkshop','00022',
+  'animalpen','02000','animalyard','02000','axe','01001','bakingtray','01000','basket','00010','builderstrowel','01000',
+  'butterchurn','02000','canoe','02000','ceramics','00100','claysupports','02000','clogs','01000','cornscoop','01000',
+  'dovecote','00002','drinkingtrough','02000','field','10000','fishingrod','01000','gypsysrock','00200','halftimberedhouse','01112',
+  'manger','02000','millstone','00001','minipasture','20000','outhouse','01100','plane','01000','potatodibber','01000',
+  'privateforest','20000','raft','02000','ridingplow','04000','sackcart','02000','simplefireplace','00100',
+  'spindle','01000','stable','01000','stonehouseextension','00010','stonetongs','01000','turnwrestplow','03000','windmill','03001','woodfiredoven','03001',
+  'writingdesk','01000'
+);
+
+var paycards2=new Array('bakerskitchen','00002','claypath','00300','copse','02000',
+  'fishtrap','01000','flagon','00100','graincart','02000','guest','20000','handmill','00001','harrow','02000',
+  'ladder','02000','lasso','00010','milkingshed','00203','moldboardplow','02000','pavedroad','00005','punner','01000',
+  'rake','01000','schnapsdistillery','00002','shepherdscrook','01000','slaughterhouse','00202','spinney','01000',
+  'tavern','02002','threshingboard','02000','watermill','01212','wildlifereserve','02000','woodcart','03000',
+  'woodencrane','03000','woodenhutextension','05010','woodenpath','01000'
+);
+
+var paycards3=new Array('bakehouse','00003','boarbreeding','10000','bookshelf','01000','breadpaddle','01000',
+  'brewery','00002','broom','01000','clapper','01000','clayhutextension','00410','crookedplow','03000',
+  'flail','01000','greenhouse','02000','landingnet','00010','loom','02000','lumber','00001','mansion','03323',
+  'milkingstool','01000','oxteam','03000','reedhut','01040','sawhorse','02000','sleepingcorner','01000',
+  'spitroast','01000','stonecart','02000','swingplow','03000','woodenstrongbox','01000','yoke','01000'
+);
+
+var paycards4=new Array('brewerscopper','00001','bust','00001','keg','01000','maypole','01000','stumpjumpplow',
+  '02000','coffeehouse','01102','emergencyhousing','01010','schnitzelmallet','00001','spielefest','32000',
+  'unusualarchitecture','00200','vineyard','01001','beerfestival','10000','bible','01000','chapel','00200',
+  'goldenhands','10000','golem','00200','hungerwall','00300','school','01100','venusfigure','00200',
+  'winecellar','00002');
+
+var paycards5=new Array('administration','01200','chimneyhood','00100','hardwarestore','00210','specialpasture','02000','tinker','10000','workbench','02000',
+  'barge','03000','birthinghouse','00201','cattlecollar','01000','coalseam','01100','farmextension','00100','farmhandsquarters','01010','foresthut','02000',
+  'forestkindergarten','01002','forestpath','00100','healingclay','00100','horsetrough','00001','largelivestockmarket','10000',
+  'leathersaddle','10000','malthouse','00200','moorbirchtree','20000','nosebag','10000','ovendamper','00002','peatashfertilizer','10000',
+  'peatbarge','02000','peatiron','01000','peatsled','01000','plowhorsemarket','00100','sowingmachine','03000','spinningmill','02200','stonequary','30000',
+  'surveyorsmap','30000','toolshed','01100','villiagehall','02200',
+
+  'buildingplan','10000','butchersblock','01000','chamberofcommerce','00201','cooperativestore','02100','familyburialplot','00001',
+  'householdinventory','10000','nightpasture','00200','oakbark','10000','stonewagon','02000','villageshop','01010','wildfields','20000',
+  'agriculturalimplement','01000','alderswamp','20000','bogforest','10000','cattlestall','02200','deepplow','03000',
+  'dryingfield','20000','farmcart','03000','firebrigade','00101','firewood','01000','fishsmokehouse','01200',
+  'flatboat','04000','fuelstorage','00110','haywagon','02000','hearthbrush','00010','loan','20000','moorenclosures','00001','moorfire','naturereserve','10000',
+  'naturesfertilizer','20000','peatbath','01100','peatboat','03020','peatcuttingexpedition','40000',
+  'routinework','10000','timbermill','00302','treenursery','01000','wheelbarrow','02000','winterstorehouse','01200',
+
+  'horseslaughterhouse','00101','cookhouse','00600','villagechurch','02004','furnace','00101','heatingstove','00201','furniturestall','01001',
+  'ceramicsstall','00101','basketstall','00011','ridingstables','02110','foresterslodge','01200','museumofthemoors','00111','peatcharcoalkiln','00001');
+
+var paycards6=new Array('almanac','01001','animalfarm','01000','beehiveoven','00002','chronicle','01000','corral','03000','cowbell','00100','extraeffort','10000','farmersmarket','20000',
+  'fieldpasture','02000','gardeningtools','02000','gimlet','01100','hiredhands','02000','hiredhelpers','20000','holidaypresent','01100','irrigationcanal','01001',
+  'itinerantlaborers','10000','kitchengloves','01000','potterswheel','01000','privatemarket_v2','01100','pulley','02000','pulley_v2','01000','reedsale','00010',
+  'remodeling','01010','sausagegrinder','00002','scythe_v2','01001','sharedwall','00001','sheepmarket','01000','sickle','01000','stables','01000',
+  'stonecrane','02002','stonekitchen_v3','00003','treehouse','02010','vegetablescoop','02000','villagespa','00101','wheelbarrow','01001','woodenbridge','03000',
+  'chronicle_v2','02200','clearcutting_v3','01000','dunghill_v2','01000','hayloft_v2','01000','migrantworkers','02000','reedbeds_v3','02000','seedspreader','01100','shovel','01100','treehouse_v2','02010','woodenbridge_v2','03000');
+
+var paycards7=new Array('additionalstables','01000','familybible','01010','grainsilo','02000','picklebarrel','02000','postholedigger','01000','schoolhouse','02002','wildonions','01000','workboots','01000');
+
+var paycards8=new Array('Almshouse_655_8','01010','AnimalNursery_665_10','02000','AppleTree_1076_5','01000','Apprenticeship_597_7','10000','BackyardWell_583_12','01002','Birdcage_1875_3','02000','Bonfire_658_7','01000',
+    'BoundaryStones_637_4','00001','Brazier_547_4','01100','ClockworkMan_290_2','00001','Crib_354_4','02000','DrainedPond_586_6','00010','FarmSchool_2630_6','01010','FestivalHall_1858_5','01100','FishHook_630_4','01000',
+    'FishPond_2237_6','00100','FlowerPots_1296_6','00100','FreeRangeChickens_191_9','11000','FriendlyPastures_1843_4','02000','GrainElevator_647_12','02000','HomeGarden_869_6','01000','Honeymoon_901_15','20000',
+    'IronPlow_268_3','01001','Keys_539_6','00001','Kindling_508_5','01000','MountainCave_1100_15','10000','OakCask_884_6','01000','OpenGate_353_7','00001','PettingZoo_695_8','02000','ReedNursery_911_8','00010',
+    'RotherhamPlow_559_6','02000','Ruins_184_3','00004','SlapdashRenovation_621_4','00101','Steamer_46_4','01000','SteelPlow_596_7','03001','VillageSchool_639_3','00011','WineCloset_2278_31','01100',
+    'FertilityShrine_2006_7','00002','FishingPier_321_2','02000','GardenersBothy_613_16','02010','MarketSquare_887_10','02000','Pitchfork_945_4','01001');
+
+//I added Pi-Deck to paycards8, Wm-Deck
+
+var paycards9=new Array('Backyard_1166_4','01000','BeachChair_1171_4','00010','BeanBasket_1210_3','00010','Bookcase_1214_1','02000','Caravan_1212_1','03000','CutPastures_1216_2','01000','Ditch_2531_3','20000',
+    'DrawWell_1200_1','01002','DutchClaypipe_1196_3','00100','DutchWindmill_1144_1','02002','EastIndiaCompany_1204_2','00211','FrontGarden_1192_3','00001','GardenWood_1173_3','10000','GoldenHelmet_1205_7','02000',
+    'GrainSheaves_1195_3','10000','HerringPot_1197_1','00100','HorseDrawnBoat_1183_3','02000','HouseBoat_1225_3','02000','ImpossibleCrate_1184_3','02000','JoyHouse_1206_3','01001','JunkRoom_2532_2','01100',
+    'LargeGreenhouse_1193_2','02000','Lumbermill_1181_2','00002','MilkJug_1213_1','00100','OxCart_1220_5','02000','PancakePan_1179_2','00100','ParkBench_1194_2','01000','Parlor_1207_1','10000','Poorhouse_1189_1','01100',
+    'RowBoat_1191_4','01000','Shack_1169_1','01001','SingleSidedPlow_1198_2','02000','Spittoon_1168_4','01000','Stage_1188_2','01000','Stockpile_1180_4','05000','Studio_1208_2','00110','WaterHouse_1209_2','00101',
+    'WoodenGable_1176_2','02000','WoodenShoes_1175_3','01000',
+// FL and WA below
+    '6thSenseAcademy_4180_1','20000','Archway_4172_1','00200','BeerMuseum_4157_1','02200','BeerParlor_4161_1','00200','BeerTable_4169_1','02000','BeguineCourtyard_3042_3','00202','BirdTrap_1513_5','02000',
+    'BobbinTable_3053_2','01000','BowlerHat_4153_1','00010','Brakelhuhner_4183_1','20000','CarrotMuseum_3056_3','02200','Cart_1516_5','03000','CastironOven_4154_1','00300','CatTongue_4170_1','10000',
+    'CloisterRuins_4159_1','50000','ClutchDrive_4162_1','00100','ComicShop_4168_1','01100','CornMaze_3055_1','20000','CourtyardGarden_1507_7','03001','DiamondTradingPost_3046_1','03300','EbonyShoe_3476_2','01000',
+    'EducationalBuilding_3475_3','00210','EndiveField_3045_2','20000','FarmCart_1369_6','03000','GiftTable_3049_2','01000','IslandsofPeace_4160_1','10000','JannekenPis_3051_3','00001','JeneverDistillery_3050_3','00301',
+    'LaGraceFountain_4167_1','00002','LionsMound_3054_5','00500','LoveGarden_1512_5','20000','MarketFountain_4173_1','00003','MarlyMachine_4155_1','11000','Office_3477_1','03420','RiverPort_4176_1','10000',
+    'Saxophone_4158_1','10000','SmokingMantlepiece_4182_1','00001','SpeculoosBakery_3057_4','02200','SteamEngine_4166_1','02000','StuckCart_1510_7','20000','Towhead_3048_5','10000','WoodenDraisine_3047_6','02000',
+// BI below
+    'HomeZoo_4679_2','01100','SchlachterChurch_4627_4','01101','SparrenCastle_4672_1','01102','The52ndLatitude_4660_3','01001',
+// G3 below
+    'Badger_2851_11','00100','BarberShop_3225_6','03010','EncirclingWall_3106_10','00004','Goblet_3085_10','01000','GrainMillOven_2589_8','00101',
+    'GroundPickaxePlow_2854_7','01000','Hammock_4245_6','02000','HayRake_2318_5','01000','Haystack_2427_4','01000','Homework_3213_9','20020',
+    'KidsCorner_2481_11','00010','Lighthouse_2365_11','01002','Necklace_3530_5','00001','ParForceHunting_3785_3','02000','Sofa_3939_9','00010',
+    'StoneHouseReconstruc_3911_14','00001','SwimmingStudio_2763_5','00010','ThreshingMachinePlow_2394_8','01000','TriptotheLake_2464_5','00010',
+    'TuileriesGarden_3302_7','01003','WoodSaw_2972_5','01000',
+// AG2 below
+    'AcornsBasket_7648_1','00010','BeanField2_7823_1','10000','BreadPaddle2_7836_1','01000','ButterChurn2_7841_1','01000','Canoe2_7842_1','02000',
+    'Caravan2_7843_1','33000','ClearingSpade_6795_3','01000','SculleryShack2_7877_1','01100','DrinkingTrough2_7884_1','00100','DutchWindmill2_7885_1','02002',
+    'Handplow_7432_1','01000','HardPorcelain_6829_1','00100','LargeGreenhouse2_7936_1','02000','LoamPitClayPit2_9008_1','10000','LumberMill2_7941_1','00002',
+    'Manger2_7943_1','02000','MiningHammer_7442_1','01000','Pitchfork_6847_1','01000','PondHutDuckPond2_7970_1','01000','StrawberryPatch2_8009_1','01000',
+    'ThreshingBoard2_8015_1','01000',
+// Artifex below
+    'AleBenches_8205_1','01000','AsparagusKnife_8235_2','01000','BarleyMill_8241_2','01000','Bassinet_8201_2','01010','BeerKeg_8239_2','01000',
+    'Bucksaw_8213_1','01000','CarpentersAxe_8174_1','01000','CarpentersHammer_8171_1','01000','Chapel_8215_1','03200','ClawKnife_8221_1','01000',
+    'Cob_8254_1','10000','DebtSecurity_8207_2','20000','DriftNetBoat_8228_2','01010','FacadesCarving_8212_1','00200','FeedingDish_8243_2','10000',
+    'FireProtectionPond_8222_2','10000','ForestLakeHut_8219_1','00200','ForestSchool_8204_1','01100','GardenHoe_8257_1','01000','GardenersKnife_8163_1','01000',
+    'Hod_8255_1','01000','InterimStorage_8259_1','20000','LiftingMachine_8247_1','01000','Loppers_8208_2','01000','MilkingParlor_8234_1','02000',
+    'NestSite_8226_1','10000','PaperKnife_8159_1','01000','PotatoRidger_8236_1','01000','PottersYard_8217_1','01010','ReclamationPlow_8177_3','01000',
+    'RenovationCompany_8170_2','04000','ShavingHorse_8225_1','01000','StableTree_8251_1','01000','StoneCompany_8674_1','00210','SwimmingClass_8211_2','10000',
+    'Telegram_8199_2','20000','ThrowingAxe_8229_1','01000','Trellises_8224_1','01000','VegetableSlicer_8218_1','01000','WheelPlow_8176_1','02000',
+    'WinnowingFan_8238_1','00010','WoodenShed_8166_1','02010','WorkCertificate_8260_1','10000',
+// WizKids below
+    'Blueprint_7387_1','10000','CarrotMuseum2_7846_1','01200','ClaySupply_7652_1','10000','DwellingMound2_7886_1','10000','EducationBonus_6805_2','10000',
+    'FarmStore_6811_1','02200','FeedFence_7424_2','01000','FieldFences_7425_1','20000','FishingNetBowlerHat2_7894_1','00010','Flail2_9019_1','01000',
+    'HorseDrawnBoat2_7922_1','02000','Hutch_7436_1','01010','LanterHouseLanternWo_7934_3','01000','MuckRake_7444_1','01000','PrivateForest2_7974_1','20000',
+    'RecycledBrick_6803_2','10000','SchnapsDistillery2_7989_1','00002','Sculpture_6863_1','00001','StorksNest_6870_3','00010','SupplyBoat_7463_1','01000',
+    'Toad_6856_2','10000','TruffleSlicer_7469_3','01000','WoodFieldCopse2_7878_1','10000'
+);
+
+var paycards10=new Array('stall','00013','halftimberedhouse','03012','shelter','02001','storagebuilding','02010','animaltrader','02020',
+    'barnfloormanufacturer','00011','breedingstation','02003','carpenter','01001','cattlefarm','02002','countryhouse','03003','cowstall','04010',
+    'doghouse','01000','farmshop','01000','farmwell','01002','feedstorehouse','01010','fencemanufacturer','00011','hayrack','03010',
+    'homeworkshop','02010','inseminationcenter','00002','joinery','00011','largeextension','03000','loghouse','02010','pigstall','04010',
+    'ranch','02003','rearingstation','02010','sawmill','00005','smallextension','00001','stud','01013','wildboarpen','02000'
+);
+
+var imagescount=0;
+var lastimage=null;
+
+//Contents for menu 1
+var menus=new Array();
+menus[1]=new Array()
+menus[1][0]='<a href="javascript:add(3,whichimage);">+3</a>'
+menus[1][1]='<a href="javascript:add(2,whichimage);">+2</a>'
+menus[1][2]='<a href="javascript:add(1,whichimage);">+1</a>'
+menus[1][3]='<a href="javascript:add(-1,whichimage);">-1</a>'
+menus[1][4]='<a href="javascript:add(-2,whichimage);">-2</a>'
+menus[1][5]='<a href="javascript:add(-3,whichimage);">-3</a>'
+menus[1][6]='<a href="javascript:take(whichimage)">Take</a>'
+menus[1][7]='<a href="javascript:split(whichimage)">Split</a>'
+menus[1][8]='<a href="javascript:remove(whichimage);">Remove</a>'
+//menus[1][9]='<a href="javascript:showCoords(whichimage)">Location</a>';
+
+
+menus[2]=new Array();
+menus[2][0]='<a href="javascript:add(3,whichimage);">+3</a>'
+menus[2][1]='<a href="javascript:add(2,whichimage);">+2</a>'
+menus[2][2]='<a href="javascript:add(1,whichimage);">+1</a>'
+menus[2][3]='<a href="javascript:add(-1,whichimage);">-1</a>'
+menus[2][4]='<a href="javascript:add(-2,whichimage);">-2</a>'
+menus[2][5]='<a href="javascript:add(-3,whichimage);">-3</a>'
+menus[2][6]='<a href="javascript:transfer(whichimage)">To Board</a>'
+menus[2][7]='<a href="javascript:split(whichimage)">Split</a>'
+menus[2][8]='<a href="javascript:remove(whichimage);">Remove</a>'
+//menus[2][9]='<a href="javascript:showCoords(whichimage)">Location</a>';
+
+menus[3]=new Array();
+menus[3][0]='<a href="javascript:rotate(whichimage)">Rotate</a>';
+menus[3][1]='<a href="javascript:split(whichimage)">Split</a>';
+menus[3][2]='<a href="javascript:remove(whichimage)">Remove</a>';
+//menus[3][3]='<a href="javascript:showCoords(whichimage)">Location</a>';
+
+menus[4]=new Array();
+menus[4][0]='<a href="javascript:split(whichimage)">Split</a>';
+menus[4][1]='<a href="javascript:goHome(whichimage)">Home</a>';
+menus[4][2]='<a href="javascript:remove(whichimage)">Remove</a>';
+//menus[4][3]='<a href="javascript:showCoords(whichimage)">Location</a>';
+
+
+menus[5]=new Array();
+menus[5][0]='<a href="javascript:newMaterial(whichimage,\'wood\')">Wood</a>';
+menus[5][1]='<a href="javascript:newMaterial(whichimage,\'clay\')">Clay</a>';
+menus[5][2]='<a href="javascript:newMaterial(whichimage,\'stone\')">Stone</a>';
+menus[5][3]='<a href="javascript:split(whichimage)">Split</a>';
+menus[5][4]='<a href="javascript:remove(whichimage)">Remove</a>';
+//menus[5][5]='<a href="javascript:showCoords(whichimage)">Location</a>';
+
+menus[6]=new Array();
+menus[6][0]='<a href="javascript:zoomIn(whichimage)">Zoom In</a>';
+menus[6][1]='<a href="javascript:take(whichimage)">Play/Farm</a>';
+menus[6][2]='<a href="javascript:toHand(whichimage)">To Hand</a>';
+menus[6][3]='<a href="javascript:remove(whichimage)">Remove</a>';
+//menus[6][4]='<a href="javascript:showCoords(whichimage)">Location</a>';
+
+menus[7]=new Array();
+menus[7][0]='<a href="javascript:zoomIn(whichimage)">Zoom In</a>';
+menus[7][1]='<a href="javascript:toBoard(whichimage)">To Board</a>';
+menus[7][2]='<a href="javascript:toHand(whichimage)">To Hand</a>';
+//menus[7][3]='<a href="javascript:passOn(whichimage)">Pass On</a>';
+menus[7][3]='<a href="javascript:announce(whichimage)">Announce</a>';
+menus[7][4]='<a href="javascript:remove(whichimage)">Remove</a>';
+//menus[7][5]='<a href="javascript:showCoords(whichimage)">Location</a>';
+
+menus[8]=new Array();
+menus[8][0]='<a href="javascript:split(whichimage)">Split</a>';
+menus[8][1]='<a href="javascript:transfer(whichimage)">To Board</a>';
+menus[8][2]='<a href="javascript:remove(whichimage)">Remove</a>';
+
+menus[9]=new Array();
+menus[9][0]='<a href="javascript:zoomIn(whichimage)">Zoom In</a>';
+menus[9][1]="<span style='display:block;width:100%;border-bottom:1px solid black;text-align:center'>or use +/-</span>";
+menus[9][2]='<a href="javascript:toMe(whichimage)">Play/Farm</a>';
+menus[9][3]='<a href="javascript:toBoard(whichimage)">To Board</a>';
+menus[9][4]='<a href="javascript:passOn(whichimage)">Pass On</a>';
+//menus[9][4]='<a href="javascript:remove(whichimage)">Remove</a>';
+//menus[9][5]='<a href="javascript:alert(whichimage.type)">type?</a>';
+
+menus[10]=new Array();
+menus[10][0]='<a href="javascript:toFarm(whichimage,0)">To Farm1</a>';
+menus[10][1]='<a href="javascript:toFarm(whichimage,1)">To Farm2</a>';
+menus[10][2]='<a href="javascript:toFarm(whichimage,2)">To Farm3</a>';
+menus[10][3]='<a href="javascript:toFarm(whichimage,3)">To Farm4</a>';
+menus[10][4]='<a href="javascript:remove(whichimage)">Remove</a>';
+//menus[10][5]='<a href="javascript:hide(whichimage)">Invisible</a>';
+
+menus[11]=new Array();
+menus[11][0]='<a href="javascript:toBoard2(whichimage,0)">To Board</a>';
+menus[11][1]='<a href="javascript:remove(whichimage)">Remove</a>';
+
+menus[12]=new Array();
+menus[12][0]='<a href="javascript:sow(whichimage)">Sow</a>'
+menus[12][1]='<a href="javascript:harvestAll(whichimage)">Harvest All</a>'
+menus[12][2]='<a href="javascript:add(2,whichimage);">+2</a>'
+menus[12][3]='<a href="javascript:add(1,whichimage);">+1</a>'
+menus[12][4]='<a href="javascript:add(-1,whichimage);">-1</a>'
+menus[12][5]='<a href="javascript:add(-2,whichimage);">-2</a>'
+menus[12][6]='<a href="javascript:transfer(whichimage)">To Board</a>'
+menus[12][7]='<a href="javascript:split(whichimage)">Split</a>'
+menus[12][8]='<a href="javascript:remove(whichimage);">Remove</a>'
+
+menus[13]=new Array();
+menus[13][0]='<a href="javascript:split(whichimage,true);">Breed</a>'
+menus[13][1]='<a href="javascript:add(2,whichimage);">+2</a>'
+menus[13][2]='<a href="javascript:add(1,whichimage);">+1</a>'
+menus[13][3]='<a href="javascript:add(-1,whichimage);">-1</a>'
+menus[13][4]='<a href="javascript:add(-2,whichimage);">-2</a>'
+menus[13][5]='<a href="javascript:transfer(whichimage)">To Board</a>'
+menus[13][6]='<a href="javascript:split(whichimage)">Split</a>'
+menus[13][7]='<a href="javascript:remove(whichimage);">Remove</a>'
+//menus[13][8]='<a href="javascript:showCoords(whichimage)">Location</a>';
+
+menus[14]=new Array();
+menus[14][0]='<a href="javascript:feed(whichimage);">Feed 2*p</a>'
+menus[14][1]='<a href="javascript:feed(whichimage,true);">Feed 2p-1</a>'
+//menus[14][2]='<a href="javascript:add(3,whichimage);">+3</a>'
+menus[14][2]='<a href="javascript:add(2,whichimage);">+2</a>'
+menus[14][3]='<a href="javascript:add(1,whichimage);">+1</a>'
+menus[14][4]='<a href="javascript:add(-1,whichimage);">-1</a>'
+menus[14][5]='<a href="javascript:add(-2,whichimage);">-2</a>'
+//menus[14][7]='<a href="javascript:add(-3,whichimage);">-3</a>'
+menus[14][6]='<a href="javascript:transfer(whichimage)">To Board</a>'
+menus[14][7]='<a href="javascript:split(whichimage)">Split</a>'
+menus[14][8]='<a href="javascript:remove(whichimage);">Remove</a>'
+
+menus[15]=new Array();
+menus[15][0]='<a href="javascript:feed(whichimage);">Feed 3*p</a>'
+menus[15][1]='<a href="javascript:feed(whichimage,true);">Feed 3p-2</a>'
+//menus[15][2]='<a href="javascript:add(3,whichimage);">+3</a>'
+menus[15][2]='<a href="javascript:add(2,whichimage);">+2</a>'
+menus[15][3]='<a href="javascript:add(1,whichimage);">+1</a>'
+menus[15][4]='<a href="javascript:add(-1,whichimage);">-1</a>'
+menus[15][5]='<a href="javascript:add(-2,whichimage);">-2</a>'
+//menus[14][7]='<a href="javascript:add(-3,whichimage);">-3</a>'
+menus[15][6]='<a href="javascript:transfer(whichimage)">To Board</a>'
+menus[15][7]='<a href="javascript:split(whichimage)">Split</a>'
+menus[15][8]='<a href="javascript:remove(whichimage);">Remove</a>'
+
+menus[16]=new Array();
+menus[16][0]='<a href="javascript:autoPay2()">Pay4All</a>'
+menus[16][1]='<a href="javascript:add(2,whichimage);">+2</a>'
+menus[16][2]='<a href="javascript:add(1,whichimage);">+1</a>'
+menus[16][3]='<a href="javascript:add(-1,whichimage);">-1</a>'
+menus[16][4]='<a href="javascript:add(-2,whichimage);">-2</a>'
+menus[16][5]='<a href="javascript:add(-3,whichimage);">-3</a>'
+menus[16][6]='<a href="javascript:transfer(whichimage)">To Board</a>'
+menus[16][7]='<a href="javascript:split(whichimage)">Split</a>'
+menus[16][8]='<a href="javascript:remove(whichimage);">Remove</a>'
+
+
+
+menus[17]=new Array();
+menus[17][0]='<a href="javascript:window.opener.farms[currentplayer].checkKey(80)">PEEP</a>'
+menus[17][1]='<a href="javascript:window.opener.farms[currentplayer].checkKey(70)">food</a>'
+menus[17][2]='<a href="javascript:window.opener.farms[currentplayer].checkKey(87)">wood</a>'
+menus[17][3]='<a href="javascript:window.opener.farms[currentplayer].checkKey(67)">clay</a>'
+menus[17][4]='<a href="javascript:window.opener.farms[currentplayer].checkKey(82)">reed</a>'
+menus[17][5]='<a href="javascript:window.opener.farms[currentplayer].checkKey(83)">stone</a>'
+menus[17][6]='<a href="javascript:window.opener.farms[currentplayer].checkKey(71)">grain</a>'
+menus[17][7]='<a href="javascript:window.opener.farms[currentplayer].checkKey(86)">veggie</a>'
+menus[17][8]='<a href="javascript:window.opener.farms[currentplayer].checkKey(72)">sheep</a>'
+menus[17][9]='<a href="javascript:window.opener.farms[currentplayer].checkKey(79)">boar</a>'
+menus[17][10]='<a href="javascript:window.opener.farms[currentplayer].checkKey(65)">cattle</a>'
+menus[17][11]='<a href="javascript:window.opener.farms[currentplayer].checkKey(73)">field</a>'
+menus[17][12]='<a href="javascript:window.opener.farms[currentplayer].checkKey(78)">H fence</a>'
+menus[17][13]='<a href="javascript:window.opener.farms[currentplayer].checkKey(77)">V fence</a>'
+menus[17][14]='<a href="javascript:window.opener.farms[currentplayer].checkKey(66)">stable</a>'
+menus[17][15]='<a href="javascript:window.opener.farms[currentplayer].checkKey(68)">woodhut</a>'
+menus[17][16]='<a href="javascript:window.opener.farms[currentplayer].checkKey(89)">clayhut</a>'
+menus[17][17]='<a href="javascript:window.opener.farms[currentplayer].checkKey(69)">stonehut</a>'
+menus[17][18]='<a href="javascript:window.opener.farms[currentplayer].checkKey(85)">beggar</a>'
+
+function addPP(){newImage('peep-'+window.opener.mycolor+'-g',0,-1,-1,1);};
+
+menus[18]=new Array();
+//menus[18][0]='<a href="javascript:addPP()">PEEP</a>'
+menus[18][0]='<a href="javascript:checkKey(80)">peep</a>'
+menus[18][1]='<a href="javascript:checkKey(70)">food</a>'
+menus[18][2]='<a href="javascript:checkKey(87)">wood</a>'
+menus[18][3]='<a href="javascript:checkKey(67)">clay</a>'
+menus[18][4]='<a href="javascript:checkKey(82)">reed</a>'
+menus[18][5]='<a href="javascript:checkKey(83)">stone</a>'
+menus[18][6]='<a href="javascript:checkKey(71)">grain</a>'
+menus[18][7]='<a href="javascript:checkKey(86)">veggie</a>'
+menus[18][8]='<a href="javascript:checkKey(72)">sheep</a>'
+menus[18][9]='<a href="javascript:checkKey(79)">boar</a>'
+menus[18][10]='<a href="javascript:checkKey(65)">cattle</a>'
+menus[18][11]='<a href="javascript:checkKey(78)">fence</a>'
+menus[18][12]='<a href="javascript:checkKey(74)">token</a>'
+//menus[18][13]='<a href="javascript:checkKey(75)">see deckE+</a>'
+//menus[18][14]='<a href="javascript:checkKey(1000)">see deckI</a>'
+//menus[18][15]='<a href="javascript:checkKey(1001)">see deckK</a>'
+//menus[18][16]='<a href="javascript:checkKey(1002)">see deckO</a>'
+//menus[18][17]='<a href="javascript:checkKey(1003)">see deckZ</a>'
+menus[18][13]='<a href="javascript:checkKey(84)">see points</a>'
+menus[18][14]='<a href="javascript:checkKey(88)">see rounds</a>'
+menus[18][15]='<a href="javascript:checkKey(76)">special</a>'
+
+menus[19]=new Array();
+menus[19][0]='<a href="javascript:zoomIn(whichimage)">Zoom In</a>';
+
+menus[20]=new Array();
+menus[20][0]='<a href="javascript:window.opener.farms[currentplayer].makeRoom()">Room</a>'
+menus[20][1]='<a href="javascript:window.opener.farms[currentplayer].checkKey(66)">Stable</a>'
+menus[20][2]='<a href="javascript:window.opener.farms[currentplayer].checkKey(71)">Grain</a>'
+menus[20][3]='<a href="javascript:window.opener.farms[currentplayer].checkKey(73)">Plow</a>'
+menus[20][4]='<a href="javascript:window.opener.farms[currentplayer].checkKey(70);window.opener.farms[currentplayer].checkKey(70)">Labor</a>'
+menus[20][5]='<a href="javascript:takeStuff()">TAKE</a>'
+menus[20][6]='<a href="javascript:window.opener.farms[currentplayer].sowC(\'grain\')">Sow G</a>'
+menus[20][7]='<a href="javascript:window.opener.farms[currentplayer].sowC(\'vegtable\')">Sow V</a>'
+menus[20][8]='<a href="javascript:window.opener.farms[currentplayer].checkKey(78)">H Fence</a>'
+menus[20][9]='<a href="javascript:window.opener.farms[currentplayer].checkKey(77)">V Fence</a>'
+menus[20][10]='<a href="javascript:window.opener.farms[currentplayer].newMaterial(null,\'clay\')">Ren2Clay</a>'
+menus[20][11]='<a href="javascript:window.opener.farms[currentplayer].newMaterial(null,\'stone\')">Ren2Stone</a>'
+menus[20][12]='<a href="javascript:window.opener.farms[currentplayer].checkKey(86)">Veggie</a>'
+
+menus[21]=new Array();
+menus[21][0]='<a href="javascript:checkKey(80)">Put Peep</a>'
+menus[21][1]='<a href="javascript:window.opener.farms[currentplayer].harvestAll()">Harvest</a>'
+menus[21][2]='<a href="javascript:window.opener.farms[currentplayer].feed2(false)">Feed 2*p</a>'
+menus[21][3]='<a href="javascript:window.opener.farms[currentplayer].feed2(true)">Feed 2p-1</a>'
+menus[21][4]='<a href="javascript:window.opener.farms[currentplayer].breed()">Breed</a>'
+menus[21][5]='<a href="javascript:window.opener.farms[currentplayer].autoPay2()">Pay4All</a>'
+menus[21][6]='<a href="javascript:window.opener.farms[currentplayer].checkKey(84)">Score</a>'
+menus[21][7]='<a href="javascript:takeSPnow()">Take SP</a>'
+menus[21][8]='<a href="javascript:takeCardNow(\'occ\')">Take 1 Occ</a>'
+menus[21][9]='<a href="javascript:takeCardNow(\'minor\')">Take 1 Min</a>'
+//Dont add boardbasic adds 2 to this
+
+menus[22]=new Array();
+menus[22][0]='<a href="javascript:checkKey(80)">Put Peep</a>'
+menus[22][1]='<a href="javascript:window.opener.farms[currentplayer].harvestAll()">Harvest</a>'
+menus[22][2]='<a href="javascript:window.opener.farms[currentplayer].feed2(false)">Feed 3*p</a>'
+menus[22][3]='<a href="javascript:window.opener.farms[currentplayer].feed2(true)">Feed 3p-2</a>'
+menus[22][4]='<a href="javascript:window.opener.farms[currentplayer].breed()">Breed</a>'
+menus[22][5]='<a href="javascript:window.opener.farms[currentplayer].autoPay2()">Pay4All</a>'
+menus[22][6]='<a href="javascript:window.opener.farms[currentplayer].checkKey(84)">Score</a>'
+menus[22][7]='<a href="javascript:takeSPnow()">Take SP</a>'
+menus[22][8]='<a href="javascript:takeCardNow(\'occ\')">Take 1 Occ</a>'
+menus[22][9]='<a href="javascript:takeCardNow(\'minor\')">Take 1 Min</a>'
+//Dont add boardbasic add 2 to this
+
+menus[23]=new Array();
+menus[23][0]='<a href="javascript:sendControl(0)">1</a>'
+menus[23][1]='<a href="javascript:sendControl(1)">2</a>'
+menus[23][2]='<a href="javascript:sendControl(2)">3</a>'
+menus[23][3]='<a href="javascript:sendControl(3)">4</a>'
+menus[23][4]='<a href="javascript:sendControl(4)">5</a>'
+
+menus[24]=new Array();
+menus[24][0]='<a href="javascript:showCurrent()">Play By Play</a>'
+menus[24][1]='<a href="javascript:showLog()">Game Log</a>'
+menus[24][2]='<a href="javascript:recordFarm()">Send Farm</a>'
+menus[24][3]='<a href="javascript:refreshPages()">Refresh All</a>'
+menus[24][4]='<a href="javascript:showHelp(1)">[READ ME]</a>'
+
+try{
+  var temp='On';
+  if (window.opener.document.getElementById('soundon2').checked==true) temp='Off';
+  menus[24][5]='<a href="javascript:toggleSound22()">Turn Sound '+temp+'</a>';
+  if (window.opener.numberofplayers>1){
+    temp='On'; if (window.opener.document.getElementById('soundon').checked==true) temp='Off';
+    menus[24][6]='<a href="javascript:toggleAlert()">Turn Alert '+temp+'</a>';
+  }
+  temp='On'; if (window.opener.autoarrangecards==true) temp='Off';
+  menus[24][7]='<a href="javascript:toggleArange()">Set Arange '+temp+'</a>';
+  temp='On'; if (window.opener.skipfarmers==true) temp='Off';
+  menus[24][8]='<a href="javascript:toggleSkip()">Set Skip '+temp+'</a>';
+}catch(err){};
+
+try{
+  var temp='On'; if (window.opener.smartchat==true) temp='Off';
+  menus[24][9]='<a href="javascript:toggleSmartChat()">Set S-chat '+temp+'</a>';
+}catch(err){};
+  menus[24][10]='<a href="javascript:turnAllOnOff(1)">Turn All On</a>';
+  menus[24][11]='<a href="javascript:turnAllOnOff(2)">Turn All Off</a>';
+  menus[24][12]='<a href="javascript:showHelp(3)">TIMES</a>';
+  
+
+menus[25]=new Array();
+menus[25][0]='<a href="javascript:recordFarm()">Send Farm</a>'
+menus[25][1]='<a href="javascript:refreshPages()">Refresh All</a>'
+menus[25][2]='<a href="javascript:showHelp(2)">Read Me</a>'
+
+//26 is created in boardbasic.js
+
+menus[27]=new Array();
+menus[27][0]='<a href="javascript:showHelp(10)">Whats This?</a>'
+
+menus[28]=new Array();
+menus[28][0]='<a href="javascript:zoomIn(whichimage)">Zoom In</a>';
+menus[28][1]="<span style='display:block;width:100%;border-bottom:1px solid black;text-align:center'>or use +/-</span>";
+menus[28][2]='<a href="javascript:takeTheCard(whichimage,1)">To Board</a>';
+menus[28][3]='<a href="javascript:takeTheCard(whichimage,3)">To Farm</a>';
+//menus[28][4]='<a href="javascript:takeTheCard(whichimage,2)">To Hand</a>';
+
+menus[29]=new Array();
+menus[29][0]='<a href="javascript:checkKey(1004)">see majors</a>';
+menus[29][1]='<a href="javascript:checkKey(1013)">mor majors</a>';
+menus[29][2]='<a href="javascript:checkKey(1026)">see deckBi</a>';
+menus[29][3]='<a href="javascript:checkKey(1011)">see deckCz</a>';
+menus[29][4]='<a href="javascript:checkKey(1005)">see deckE</a>';
+menus[29][5]='<a href="javascript:checkKey(1015)">see deckFm</a>';
+menus[29][6]='<a href="javascript:checkKey(1023)">see dck FL</a>';
+menus[29][7]='<a href="javascript:checkKey(1006)">see deckG</a>';
+menus[29][8]='<a href="javascript:checkKey(1025)">see dck G3</a>';
+menus[29][9]='<a href="javascript:checkKey(1000)">see deckI</a>';
+menus[29][10]='<a href="javascript:checkKey(1001)">see deckK</a>';
+menus[29][11]='<a href="javascript:checkKey(1014)">see dck eM</a>';
+//menus[29][11]='<a href="javascript:checkKey(1024)">see dck MB</a>';
+menus[29][12]='<a href="javascript:checkKey(1022)">see dck NL</a>';
+menus[29][13]='<a href="javascript:checkKey(1002)">see deckO</a>';
+menus[29][14]='<a href="javascript:checkKey(1021)">see dck Pi</a>';
+menus[29][16]='<a href="javascript:checkKey(1020)">see dck Wm</a>';
+//menus[29][16]='<a href="javascript:checkKey(1016)">see dck mY</a>';
+menus[29][15]='<a href="javascript:checkKey(1016)">see dck WA</a>';
+menus[29][17]='<a href="javascript:checkKey(1003)">see deckZ</a>';
+menus[29][18]='<a href="javascript:checkKey(1017)">see ACBS</a>';
+
+//menus[29][9]='<a href="javascript:checkKey(1007)">Xtra Ideas</a>';
+
+menus[30]=new Array();
+menus[30][0]='<a href="javascript:zoomIn(whichimage)">Zoom In</a>';
+menus[30][1]='<a href="javascript:take(whichimage)">Play/Farm</a>';
+menus[30][2]='<a href="javascript:toHand(whichimage)">To Hand</a>';
+menus[30][3]='<a href="javascript:remove(whichimage)">Remove</a>';
+//menus[30][3]='<a href="javascript:announce(whichimage)">Announce</a>';
+menus[30][4]='<a href="javascript:comment(whichimage)">COMMENT</a>';
+
+menus[31]=new Array();
+menus[31][0]='<a href="javascript:zoomIn(whichimage)">Zoom In</a>';
+menus[31][1]='<a href="javascript:toBoard(whichimage)">To Board</a>';
+menus[31][2]='<a href="javascript:toHand(whichimage)">To Hand</a>';
+//menus[31][3]='<a href="javascript:passOn(whichimage)">Pass On</a>';
+//menus[31][3]='<a href="javascript:remove(whichimage)">Remove</a>';
+menus[31][3]='<a href="javascript:announce(whichimage)">Announce</a>';
+menus[31][4]='<a href="javascript:comment(whichimage)">COMMENT</a>';
+
+menus[32]=new Array();
+menus[32][0]='<a href="javascript:zoomIn(whichimage)">Zoom In</a>';
+//menus[32][1]="<span style='display:block;width:100%;border-bottom:1px solid black;text-align:center'>or use +/-</span>";
+menus[32][1]='<a href="javascript:toMe(whichimage)">Play/Farm</a>';
+menus[32][2]='<a href="javascript:toBoard(whichimage)">To Board</a>';
+menus[32][3]='<a href="javascript:comment(whichimage)">COMMENT</a>';
+//menus[32][4]='<a href="javascript:passOn(whichimage)">Pass On</a>';
+//menus[9][4]='<a href="javascript:remove(whichimage)">Remove</a>';
+
+menus[33]=new Array();
+menus[33][0]='<a href="javascript:zoomIn(whichimage)">Zoom In</a>';
+menus[33][1]="<span style='display:block;width:100%;border-bottom:1px solid black;text-align:center'>or use +/-</span>";
+menus[33][2]='<a href="javascript:takeTheCard(whichimage,1)">To Board</a>';
+menus[33][3]='<a href="javascript:takeTheCard(whichimage,3)">To Farm</a>';
+menus[33][4]='<a href="javascript:comment(whichimage)">COMMENT</a>';
+
+menus[34]=new Array();
+menus[34][0]='<a href="javascript:zoomIn(whichimage)">Zoom In</a>';
+menus[34][1]="<span style='display:block;width:100%;border-bottom:1px solid black;text-align:center'>or use +/-</span>";
+menus[34][2]='<a href="javascript:takeCard(whichimage)">Take</a>';
+//menus[34][3]='<a href="javascript:">Untake</a>';
+//menus[34][3]='<a href="javascript:">Pass</a>';
+
+menus[35]=new Array();
+menus[35][0]='<a href="javascript:zoomIn(whichimage)">Zoom In</a>';
+menus[35][1]="<span style='display:block;width:100%;border-bottom:1px solid black;text-align:center'>or use +/-</span>";
+//menus[35][2]='<a href="javascript:">Pass</a>';
+
+menus[36]=new Array();
+menus[36][0]='<a href="javascript:zoomIn(whichimage)">Zoom In</a>';
+menus[36][1]="<span style='display:block;width:100%;border-bottom:1px solid black;text-align:center'>or use +/-</span>";
+menus[36][2]='<a href="javascript:window.opener.gameboard.untakeCard(whichimage)">Untake</a>';
+//menus[36][3]='<a href="javascript:">Pass</a>';
+
+menus[40]=new Array();
+menus[40][0]='<a href="javascript:zoomIn(whichimage)">Zoom In</a>';
+menus[40][1]="<a href='javascript:dcd(whichimage)'>Discard</a>";
+menus[40][2]="<a href='javascript:dcdGet(whichimage)'>Dcd & Get</a>";
+menus[40][3]="<a href='javascript:rtn(whichimage)'>Return</a>";
+menus[40][4]="<a href='javascript:rtnGet(whichimage)'>Rtn & Get</a>";
+menus[40][5]="<a href='javascript:slt(whichimage)'>Select</a>";
+//menus[40][6]='<a href="javascript:showCoords(whichimage)">Location</a>';
+
+menus[41]=new Array();
+menus[41][0]='<a href="javascript:zoomIn(whichimage)">Zoom In</a>';
+menus[41][1]="<a href='javascript:slt(whichimage)'>Select</a>";
+//menus[41][2]='<a href="javascript:take(whichimage)">To Farm</a>';
+menus[41][2]='<a href="javascript:remove(whichimage)">Remove</a>';
+//menus[41][3]='<a href="javascript:showCoords(whichimage)">Location</a>';
+
+menus[42]=new Array();
+menus[42][0]="<a href='javascript:cut(whichimage,0,3)'>Cut +3 F</a>";
+menus[42][1]="<a href='javascript:cut(whichimage,0,4)'>Cut +4 F</a>";
+menus[42][2]="<a href='javascript:cut(whichimage,0,5)'>Cut +5 F</a>";
+menus[42][3]='<a href="javascript:split(whichimage)">Split</a>';
+menus[42][4]='<a href="javascript:goHome(whichimage)">Home</a>';
+menus[42][5]='<a href="javascript:remove(whichimage)">Remove</a>';
+
+menus[43]=new Array();
+menus[43][0]="<a href='javascript:cut(whichimage,1,2)'>Cut +2 W</a>";
+menus[43][1]="<a href='javascript:cut(whichimage,1,3)'>Cut +3 W</a>";
+menus[43][2]="<a href='javascript:cut(whichimage,1,4)'>Cut +4 W</a>";
+menus[43][3]="<a href='javascript:snb(whichimage)'>Slsh & Brn</a>";
+menus[43][4]='<a href="javascript:split(whichimage)">Split</a>';
+menus[43][5]='<a href="javascript:goHome(whichimage)">Home</a>';
+menus[43][6]='<a href="javascript:remove(whichimage)">Remove</a>';
+
+menus[44]=new Array();
+menus[44][0]='<a href="javascript:zoomIn(whichimage)">Zoom In</a>';
+menus[44][1]="<a href='javascript:newCards(\"minor\",7,1)'>Play & Take</a>";
+menus[44][2]="<span style='display:block;width:100%;border-bottom:1px solid black;text-align:center'>7 minors</span>";
+menus[44][3]='<a href="javascript:toBoard(whichimage)">To Board</a>';
+
+menus[47]=new Array();
+menus[47][0]='<a href="javascript:zoomIn(whichimage)">Zoom In</a>';
+menus[47][1]="<a href='javascript:newCards(\"occ\",7,1)'>Play & Take</a>";
+menus[47][2]="<span style='display:block;width:100%;border-bottom:1px solid black;text-align:center'>7 occs</span>";
+menus[47][3]='<a href="javascript:toBoard(whichimage)">To Board</a>';
+menus[47][4]='<a href="javascript:comment(whichimage)">COMMENT</a>';
+
+menus[45]=new Array();
+menus[45][0]='<a href="javascript:zoomIn(whichimage)">Zoom In</a>';
+menus[45][1]="<span style='display:block;width:100%;border-bottom:1px solid black;text-align:center'>or use +/-</span>";
+menus[45][2]='<a href="javascript:toMe(whichimage)">Play/Farm</a>';
+menus[45][3]='<a href="javascript:toBoard(whichimage)">To Board</a>';
+menus[45][4]="<a href=\"javascript:showHelp(9)\" style='color:black'>READ ME!</a>";
+
+menus[46]=new Array();
+menus[46][0]='<a href="javascript:zoomIn(whichimage)">Zoom In</a>';
+menus[46][1]='<a href="javascript:toBoard(whichimage)">To Board</a>';
+menus[46][2]='<a href="javascript:toHand(whichimage)">To Hand</a>';
+menus[46][3]='<a href="javascript:announce(whichimage)">Announce</a>';
+//menus[46][4]='<a href="javascript:remove(whichimage)">Remove</a>';
+menus[46][4]="<a href=\"javascript:showHelp(9)\" style='color:black'>READ ME!</a>";
+
+menus[48]=new Array();
+menus[48][0]='<a href="javascript:sow(whichimage)">Water All</a>'
+menus[48][1]='<a href="javascript:harvestAll(whichimage)">Pick All</a>'
+menus[48][2]='<a href="javascript:add(2,whichimage);">+2</a>'
+menus[48][3]='<a href="javascript:add(1,whichimage);">+1</a>'
+menus[48][4]='<a href="javascript:add(-1,whichimage);">-1</a>'
+menus[48][5]='<a href="javascript:add(-2,whichimage);">-2</a>'
+menus[48][6]='<a href="javascript:transfer(whichimage)">To Board</a>'
+menus[48][7]='<a href="javascript:split(whichimage)">Split</a>'
+menus[48][8]='<a href="javascript:remove(whichimage);">Remove</a>'
+
+menus[49]=new Array();
+menus[49][0]='<a href="javascript:split(whichimage)">Split</a>';
+menus[49][1]='<a href="javascript:take(whichimage)">Home</a>';
+menus[49][2]='<a href="javascript:remove(whichimage)">Remove</a>';
+
+menus[50]=new Array();
+menus[50][0]='<a href="javascript:zoomIn(whichimage)">Zoom In</a>';
+menus[50][1]='<a href="javascript:toBoard(whichimage)">To Board</a>';
+menus[50][2]='<a href="javascript:toHand(whichimage)">To Hand</a>';
+menus[50][3]='<a href="javascript:announce(whichimage)">Announce</a>';
+menus[50][4]="<a href=\"javascript:showHelp(11)\" style='color:black'>READ ME!</a>";
+
+menus[51]=new Array();
+menus[51][0]='<a href="javascript:remove(whichimage)">Remove</a>';
+menus[51][1]='<a href="javascript:split(whichimage)">Split</a>'
+
+menus[52]=new Array();
+menus[52][0]='<a href="javascript:zoomIn(whichimage)">Zoom In</a>';
+menus[52][1]='<a href="javascript:take(whichimage)">To Farm</a>';
+menus[52][2]='<a href="javascript:remove(whichimage)">Remove</a>';
+
+menus[53]=new Array();
+menus[53][0]='<a href="javascript:zoomIn(whichimage)">Zoom In</a>';
+menus[53][1]='<a href="javascript:toBoard(whichimage)">To Board</a>';
+menus[53][2]='<a href="javascript:announce(whichimage)">Announce</a>';
+menus[53][3]='<a href="javascript:remove(whichimage)">Remove</a>';
+
+
+//to farm
+menus[54]=new Array();
+menus[54][0]='<a href="javascript:window.opener.farms[currentplayer].checkKey(80)">PEEP</a>'
+menus[54][1]='<a href="javascript:window.opener.farms[currentplayer].checkKey(87)">wood</a>'
+menus[54][2]='<a href="javascript:window.opener.farms[currentplayer].checkKey(82)">reed</a>'
+menus[54][3]='<a href="javascript:window.opener.farms[currentplayer].checkKey(83)">stone</a>'
+menus[54][4]='<a href="javascript:window.opener.farms[currentplayer].checkKey(72)">sheep</a>'
+menus[54][5]='<a href="javascript:window.opener.farms[currentplayer].checkKey(79)">boar</a>'
+menus[54][6]='<a href="javascript:window.opener.farms[currentplayer].checkKey(65)">cattle</a>'
+menus[54][7]='<a href="javascript:window.opener.farms[currentplayer].checkKey(50)">horse</a>'
+menus[54][8]='<a href="javascript:window.opener.farms[currentplayer].checkKey(78)">H fence</a>'
+menus[54][9]='<a href="javascript:window.opener.farms[currentplayer].checkKey(77)">V fence</a>'
+menus[54][10]='<a href="javascript:window.opener.farms[currentplayer].checkKey(66)">trough</a>'
+
+//to board
+menus[55]=new Array();
+menus[55][0]='<a href="javascript:checkKey(80)">peep</a>'
+menus[55][1]='<a href="javascript:checkKey(87)">wood</a>'
+menus[55][2]='<a href="javascript:checkKey(82)">reed</a>'
+menus[55][3]='<a href="javascript:checkKey(83)">stone</a>'
+menus[55][4]='<a href="javascript:checkKey(72)">sheep</a>'
+menus[55][5]='<a href="javascript:checkKey(79)">boar</a>'
+menus[55][6]='<a href="javascript:checkKey(65)">cattle</a>'
+menus[55][7]='<a href="javascript:checkKey(50)">horse</a>'
+menus[55][8]='<a href="javascript:checkKey(78)">fence</a>'
+menus[55][9]='<a href="javascript:checkKey(74)">token</a>'
+menus[55][10]='<a href="javascript:checkKey(84)">see points</a>'
+menus[55][11]='<a href="javascript:checkKey(76)">special</a>'
+
+//actions
+menus[56]=new Array();
+menus[56][0]='<a href="javascript:takeStuff()">TAKE stuff</a>'
+menus[56][1]='<a href="javascript:window.opener.farms[currentplayer].checkKey(87);window.opener.farms[currentplayer].checkKey(82);window.opener.farms[currentplayer].checkKey(83)">take W S R</a>'
+menus[56][2]='<a href="javascript:window.opener.farms[currentplayer].checkKey(66)">Trough</a>'
+menus[56][3]='<a href="javascript:window.opener.farms[currentplayer].checkKey(78)">H Fence</a>'
+menus[56][4]='<a href="javascript:window.opener.farms[currentplayer].checkKey(77)">V Fence</a>'
+
+//act2
+menus[57]=new Array();
+menus[57][0]='<a href="javascript:checkKey(80)">Put Peep</a>'
+menus[57][1]='<a href="javascript:window.opener.farms[currentplayer].breed()">Breed</a>'
+menus[57][2]='<a href="javascript:window.opener.farms[currentplayer].autoPay2()">Pay4All</a>'
+menus[57][3]='<a href="javascript:window.opener.farms[currentplayer].checkKey(84)">Score</a>'
+menus[57][4]='<a href="javascript:takeSPnow()">Take SP</a>'
+
+//dck2
+menus[58]=new Array();
+menus[58][0]='<a href="javascript:checkKey(1027)">see dck AG2</a>';
+menus[58][1]='<a href="javascript:checkKey(1028)">see dck A(J)</a>';
+menus[58][2]='<a href="javascript:checkKey(1029)">see B(J2)</a>';
+menus[58][3]='<a href="javascript:checkKey(1030)">see deckCD</a>';
+menus[58][4]='<a href="javascript:checkKey(1031)">see deckG4</a>';
+menus[58][5]='<a href="javascript:checkKey(1032)">see deckG5</a>';
+menus[58][6]='<a href="javascript:checkKey(1040)">see deckG6</a>';
+menus[58][7]='<a href="javascript:checkKey(1033)">G6erpelboer</a>';
+menus[58][8]='<a href="javascript:checkKey(1034)">G6 ken</a>';
+menus[58][9]='<a href="javascript:checkKey(1035)">G6 nwoll</a>';
+menus[58][10]='<a href="javascript:checkKey(1036)">G6 oxmond</a>';
+menus[58][11]='<a href="javascript:checkKey(1037)">G6sandswoll</a>';
+menus[58][12]='<a href="javascript:checkKey(1038)">see deckD</a>';
+menus[58][13]='<a href="javascript:checkKey(1039)">see deckT</a>';
+
+
+function breed(){
+  if (countUp2('livestock2','sheep',false)>=2) newImage('livestock2-sheep-g',1,-1,-1);
+  if (countUp2('livestock2','boar',false)>=2) newImage('livestock2-boar-g',1,-1,-1);
+  if (countUp2('livestock2','cattle',false)>=2) newImage('livestock2-cattle-g',1,-1,-1);
+  if (countUp2('livestock','sheep',false)>=2) newImage('livestock-sheep-g',1,-1,-1);
+  if (countUp2('livestock','boar',false)>=2) newImage('livestock-boar-g',1,-1,-1);
+  if (countUp2('livestock','cattle',false)>=2) newImage('livestock-cattle-g',1,-1,-1);
+  if (countUp2('livestock3','horse',false)>=2) newImage('livestock3-horse-g',1,-1,-1);
+}
+
+function takeSPnow(){
+  if (currentplayer!=mynumber){
+    alert ('Wait until it is your turn.');
+    return;
+  }
+  startplayer=mynumber;
+  setStartPlayer();
+  var me=window.opener.gameboard.myname;
+  window.opener.gameboard.sendData('chatserver.php?sid='+(new Date()).getTime()+'&name=Game Manager&comment='+me+' takes SP','',true,0,true);
+}
+
+function takeCardNow(type){
+  if (currentplayer!=mynumber){
+    alert ('Wait until it is your turn.');
+    return;
+  }
+  if (window.opener.numberofplayers<=1 || confirm('If you take this card, it will be reported in the chat.  \r\nDo you still want to take it?')){
+    var me=window.opener.gameboard.myname;
+    var myhand=window.opener.myhand;
+    window.opener.gameboard.sendData('chatserver.php?sid='+(new Date()).getTime()+'&name=Game Manager&comment='+me+' takes 1 '+type+' from the deck!','',true,0,true);
+    var result=window.opener.gameboard.sendData('deckserver.php?broom=2&sid='+(new Date()).getTime()+'&name='+me+'&type='+type+'&num=1','',true,0,false);
+    var parts=result.split(";");
+    var count=parts[0];
+    for (var i=0;i<count;i++) myhand.newImage(parts[i+1],0,-1,-1);
+    window.opener.gameboard.sendHand(window.opener.gameboard.mynumber);
+  }
+}
+
+function turnAllOnOff(x){
+    toggleSmartChat(x);
+    toggleSkip(x);
+    toggleArange(x);
+    toggleAlert(x);
+    toggleSound22(x);
+}
+
+function toggleSmartChat(force1){
+  try{
+   if (force1!=2 && (window.opener.smartchat==false || force1==1) ) {
+     menus[24][9]='<a href="javascript:toggleSmartChat()">Set S-chat Off</a>';
+     window.opener.smartchat=true;
+     window.opener.chattop3=-1;
+     window.opener.chatcolor3='white';
+   }
+   else {
+     menus[24][9]='<a href="javascript:toggleSmartChat()">Set S-chat On</a>';
+     window.opener.smartchat=false;
+   }
+   window.opener.setExtra();
+  }catch(err){}
+}
+
+function toggleSkip(force1){
+  try{
+   if (force1!=2 && (window.opener.skipfarmers==false || force1==1) ) {
+     menus[24][8]='<a href="javascript:toggleArange()">Set Skip Off</a>';
+     window.opener.skipfarmers=true;
+   }
+   else {
+     menus[24][8]='<a href="javascript:toggleArange()">Set Skip On</a>';
+     window.opener.skipfarmers=false;
+   }
+   window.opener.setExtra();
+  }catch(err){}
+}
+
+function toggleArange(force1){
+  //alert(window.opener.document.cookie);
+  try{
+   if (force1!=2 && (window.opener.autoarrangecards==false || force1==1) ) {
+     menus[24][7]='<a href="javascript:toggleArange()">Set Arange Off</a>';
+     window.opener.autoarrangecards=true;
+   }
+   else {
+     menus[24][7]='<a href="javascript:toggleArange()">Set Arange On</a>';
+     window.opener.autoarrangecards=false;
+   }
+   window.opener.setExtra();
+  }catch(err){}
+  //alert(window.opener.autoarrangecards);
+}
+
+function toggleAlert(force1){
+try{
+  var curr=window.opener.document.getElementById('soundon').checked;
+  window.opener.document.getElementById('soundon').checked=!curr; 
+  if (force1==1 && numberofplayers>1) window.opener.document.getElementById('soundon').checked=true;
+  if (force1==2 && numberofplayers>1) window.opener.document.getElementById('soundon').checked=false;
+  window.opener.toggleSound();
+}catch(err){}
+}
+
+function toggleSound22(force1){
+try{
+  var curr=window.opener.document.getElementById('soundon2').checked;
+  window.opener.document.getElementById('soundon2').checked=!curr; 
+  if (force1==1) window.opener.document.getElementById('soundon2').checked=true;
+  else if (force1==2) window.opener.document.getElementById('soundon2').checked=false;
+  window.opener.toggleSound2();
+}catch(err){}
+}
+
+function cut(img,x,y){
+  remove(img);
+  if (x==0) newImage('resource-fuel-g',y,-1,-1);
+  else if (x==1) newImage('resource-wood-g',y,-1,-1);
+}
+
+function snb(img){
+  var x=img.xpos;
+  var y=img.ypos;
+  remove(img);
+  newImage('field-field-j',0,x,y);
+}
+
+function dcd(image){
+  remove(image);
+  clearFence(image.xpos,image.ypos);
+}
+
+function dcdGet(image){
+  var stretchit=0;
+  try{if (stretch>0) stretchit=stretch;}catch(err){};
+  if (mynumber!=-1){
+    remove(image);
+    clearFence(image.xpos,image.ypos);
+    if (stretchit==0) newImage( sendData('specialserver.php?get=1&sid='+(new Date()).getTime(),'',true,0,false),0,specialpositions[0]*scale,specialpositions[1]*scale);
+    else newImage( sendData('specialserver.php?get=1&sid='+(new Date()).getTime(),'',true,0,false),0,(specialpositions2[0]+100)*scale,specialpositions2[1]*scale);
+  }
+  else alert('Spectators can not get a new card.');
+}
+
+function rtn(image){
+  remove(image);
+  clearFence(image.xpos,image.ypos);
+  if (mynumber!=-1)
+  sendData('specialserver.php?set='+getName(image),'',true,0,false);
+}
+
+function rtnGet(image){
+  var stretchit=0;
+  try{if (stretch>0) stretchit=stretch;}catch(err){};
+  if (mynumber!=-1){
+    remove(image);
+    clearFence(image.xpos,image.ypos);
+    //if (stretchit==0) newImage( sendData('specialserver.php?get=1&sid='+(new Date()).getTime(),'',true,0,false),0,specialpositions[0]*scale,specialpositions[1]*scale);
+    //else newImage( sendData('specialserver.php?get=1&sid='+(new Date()).getTime(),'',true,0,false),0,(specialpositions2[0]+100)*scale,specialpositions2[1]*scale);
+    if (stretchit==0) newImage( sendData('specialserver.php?get=1&set='+getName(image)+'&sid='+(new Date()).getTime(),'',true,0,false),0,specialpositions[0]*scale,specialpositions[1]*scale);
+    else newImage( sendData('specialserver.php?get=1&set='+getName(image)+'&sid='+(new Date()).getTime(),'',true,0,false),0,(specialpositions2[0]+100)*scale,specialpositions2[1]*scale);
+
+  }
+  else alert('Spectators can not get a new card.');
+}
+
+function clearFence(x,y){
+  var obj;
+  var fence=new Array();
+  var fenceindex=0;
+  var images=document.getElementsByTagName('img');
+  for (var i=1;i<images.length;i++){
+    if (images[i].identifier=='horizontalfence' && images[i].xpos>=(x-30*scale) && images[i].ypos>=(y-30*scale)) fence[fenceindex++]=images[i];
+    if (images[i].identifier=='stable' && images[i].xpos>=(x-30*scale) && images[i].ypos>=(y-30*scale)) fence[fenceindex++]=images[i];
+  }
+  for (var j=0;j<fenceindex;j++) remove(fence[j]);
+}
+
+function clearGuest(){
+  var obj;
+  var fence=new Array();
+  var fenceindex=0;
+  var images=document.getElementsByTagName('img');
+  for (var i=1;i<images.length;i++){
+    if (images[i].identifier=='guest') fence[fenceindex++]=images[i];
+  }
+  for (var j=0;j<fenceindex;j++) remove(fence[j]);
+}
+function clearOneFence(){
+  var obj;
+  var fence=new Array();
+  var fenceindex=0;
+  var images=document.getElementsByTagName('img');
+  for (var i=1;i<images.length;i++){
+    if (images[i].identifier=='horizontalfence') {
+      fence[fenceindex++]=images[i];
+      i=1000000;
+    }
+  }
+  for (var j=0;j<fenceindex;j++) remove(fence[j]);
+}
+
+function slt(image){
+  var color=mycolor;
+  try{
+   if (father=='board') color=playercolors[currentplayer];
+   else color=window.opener.gameboard.playercolors[farmnumber];
+  }catch(err){};
+  //var text="<span style='text-decoration:underline'>Special Action</span>";
+  //sendData('turnrecorder.php','record='+text+'&action=notbegin',false,-2,true);
+  var temp=dontrecord2;
+  dontrecord2=true;
+  newImage('stable-'+color+'-g',0,image.xpos+(20*scale),image.ypos+(20*scale));
+  dontrecord2=temp;
+  //try{selectspecial=true;}catch(err){};
+}
+
+function announce(image){
+  if (window.opener.gameboard.mynumber==-1) alert('You must be playing to announce cards.');
+  var me=window.opener.gameboard.playernames[farmnumber];
+  var name=image.identifier+image.type;
+  window.opener.gameboard.sendData("chatserver.php?sid="+(new Date()).getTime()+"&name=Game Manager&comment="+me+" plays <a href='javascript:try{parent.zoomIn2(\""+image.identifier+"\",\""+image.type+"\")}catch(err){}'>"+name+"</a>",'',true,0,true);
+}
+
+function takeTheCard(image,x){
+  if (window.opener.numberofplayers<=1 || confirm('If you take this card, it will be reported in the chat.  \r\nDo you still want to take it?')){
+    var where='';
+    var me=window.opener.gameboard.myname;
+    if (x==1) {
+      where='board';
+      toBoard(image);
+    }
+    else if (x==2) {
+      where='hand';
+      toHand(image);
+    }
+    else if (x==3) {
+      where='farm';
+      toMe(image);
+    }
+    var name=getName(image).replace('-j','');
+    if (x!=1 || window.opener.gameboard.currentplayer==window.opener.gameboard.mynumber)
+      window.opener.gameboard.sendData('chatserver.php?sid='+(new Date()).getTime()+'&name=Game Manager&comment='+me+' takes from deck! ('+name+' to '+where+')','',true,0,true);
+      window.opener.gameboard.sendData('takeserver.php?sid='+(new Date()).getTime()+'&name='+me+'&card='+name+'&where='+where,'',true,0,true);
+    //if (x==2) window.opener.gameboard.sendData('turnrecorder.php','record='+extrastr+type+' '+identifier+' on '+father+'&action=notbegin',false,-2,true);
+  }
+}
+
+function showHelp(x){
+ var h=260;
+ if (is_chrome) h=h+chromeadjust;
+ if (x==9){
+    var wina=window.open('http://playagricola.com/forums/index.php?topic=1293.0','wina','resizable=1, scrollbars=1');
+    //wina.moveTo(0,0);
+    wina.focus();
+    return;
+ }
+ if (x==10){
+    var wina=window.open('../whatsthis.html','wina','width=500, height='+h+', resizable=1, scrollbars=1');
+    if (!delay_open) wina.moveTo(700,0);
+    wina.focus();
+    return;
+ }
+ if (x==11){
+    var wina=window.open('http://playagricola.com/forums/index.php?topic=3223','wina','resizable=1, scrollbars=1');
+    //wina.moveTo(0,0);
+    wina.focus();
+    return;
+ }
+ if (x==3){
+    h=160;
+    var wina=window.open('times.txt','wina','width=1000, height='+h+', resizable=1, scrollbars=1');
+    if (!delay_open) wina.moveTo(700,0);
+    wina.focus();
+    return;
+ }
+ var wina=window.open('../readme'+x+'.html','wina','width=300, height='+h+', resizable=1, scrollbars=1');
+ if (!delay_open) wina.moveTo(700,0);
+ wina.focus();
+}
+
+function showLog(){
+ var h=screen.height;
+ var l=screen.width-400;
+ var winb=window.open('turnrecorder.php?time='+(new Date()).getTime()+'&password='+password+'&action=showlog','winb','width=400, height='+h+', resizable=1, scrollbars=1');
+ if (!delay_open) winb.moveTo(l,0);
+ winb.focus();
+}
+
+function showCurrent(){
+  try{window.opener.showCurrent()}catch(err){};
+}
+
+function okToRecord(){
+  var result=false;
+  if (father=='farm' && farmnumber==window.opener.gameboard.currentplayer && window.opener.gameboard.mynumber==window.opener.gameboard.currentplayer) result=true;
+  if (father=='board' && mynumber==currentplayer) result=true;
+  if (dontrecord2) result=false;
+  return result;
+}
+
+function comment(obj){
+  var url;
+  var code=obj.type.substring(0,2);
+  if (obj.identifier.indexOf('gminor')!=-1 || code=='g1' || code=='g3' || code=='g4')  url="http://playagricola.com/Agricola/Board1/discussg.php?name="+obj.type;
+  else if (obj.identifier.indexOf('cminor')!=-1 || code=='c1' || code=='c3' || code=='c4')  url="http://playagricola.com/Agricola/Board1/discussc.php?name="+obj.type;
+  else if (obj.identifier.indexOf('xminor')!=-1 || code=='x1' || code=='x3' || code=='x4')  {
+    var parts=obj.type.split('_');
+    url="http://playagricola.com/Agricola/Cards/index.php?id="+parts[1];
+  }
+  else url="http://playagricola.com/Agricola/Board1/discuss.php?name="+obj.type;
+  var cmt;
+  try { cmt=window.opener.open(url,'cmt','resizable=1, scrollbars=1') }
+  catch(err){cmt=window.open(url,'cmt','resizable=1, scrollbars=1');};
+  //cmt.moveTo(0,0);
+  cmt.focus();
+}
+
+function checkKey(char,evt){
+    try{if (window.opener.boardloaded!=true) return;}catch(err){};
+    var h=200;
+    if (is_chrome) h=h+chromeadjust;
+    if (father=='draft' && char!=56) return;
+    //if (char==90 && lastimage!=null) {
+    //  remove(lastimage);
+    //  lastimage=null;
+    //  return true;
+    //}
+    if (char==81){ //q
+      var win=window.open('placeimage.html','win','width=320, height='+(h+60)+', resizable=0, scrollbars=0');
+      if (!delay_open) win.moveTo(700,0);
+      win.focus();
+    }
+/**
+    else if (char==75){ //k
+      var ac;
+      try { ac=window.opener.open('allcards.html','ac','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac=window.open('allcards.html','ac','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac.moveTo(0,0);
+      ac.focus();
+    }
+*/
+    else if (char==56 && (father=='seehand' || window.opener.myregistration==9 || window.opener.myname.toLowerCase()=='jingking' || window.opener.myname.toLowerCase()=='tom' || window.opener.myname.toLowerCase()=='trey' || window.opener.myname.toLowerCase()=='stone')){ //8 toggle stats
+      try{
+        if (father=='seehand'){
+          if (statshow==true){
+            for (i=0;i<statboxes;i++) document.getElementById('stat'+i).style.display='none';
+            statshow=false;
+          }
+          else{
+            for (i=0;i<statboxes;i++) document.getElementById('stat'+i).style.display='block';
+            statshow=true;
+          }
+
+        }
+        else{
+          if (window.opener.statshow==true){
+            for (i=0;i<window.opener.statboxes;i++) document.getElementById('stat'+i).style.display='none';
+            window.opener.statshow=false;
+          }
+          else{
+            for (i=0;i<window.opener.statboxes;i++) document.getElementById('stat'+i).style.display='block';
+            window.opener.statshow=true;
+          }
+        }
+      }catch(err){};
+    }
+    else if (char==1000){ //who knows
+      var ac2;
+      try { ac2=window.opener.open('allcardsi.html','ac2','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac2=window.open('allcardsi.html','ac2','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac2.moveTo(0,0);
+      ac2.focus();
+    }
+    else if (char==1001){ //who knows
+      var ac3;
+      try { ac3=window.opener.open('allcardsk.html','ac3','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac3=window.open('allcardsk.html','ac3','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac3.moveTo(0,0);
+      ac3.focus();
+    }
+    else if (char==1002){ //who knows
+      var ac4;
+      try { ac4=window.opener.open('allcardso.html','ac4','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac4=window.open('allcardso.html','ac4','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac4.moveTo(0,0);
+      ac4.focus();
+    }
+    else if (char==1003){ //who knows
+      var ac5;
+      try { ac5=window.opener.open('allcardsz.html','ac5','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac5=window.open('allcardsz.html','ac5','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac5.moveTo(0,0);
+      ac5.focus();
+    }
+    else if (char==1004){ //who knows
+      var ac6;
+      try { ac6=window.opener.open('allcardsm.html','ac6','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac6=window.open('allcardsm.html','ac6','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac6.moveTo(0,0);
+      ac6.focus();
+    }
+    else if (char==1005){ //who knows
+      var ac7;
+      try { ac7=window.opener.open('allcardse.html','ac7','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac7=window.open('allcardse.html','ac7','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac7.moveTo(0,0);
+      ac7.focus();
+    }
+    else if (char==1006){ //who knows
+      var ac8;
+      try { ac8=window.opener.open('allcardsg.php?sid='+(new Date()).getTime(),'ac8','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac8=window.open('allcardsg.php?sid='+(new Date()).getTime(),'ac8','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac8.moveTo(0,0);
+      ac8.focus();
+    }
+    else if (char==1007){ //who knows
+      var ac9;
+      try { ac9=window.opener.open('allcardsd.php?sid='+(new Date()).getTime(),'ac9','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac9=window.open('allcardsd.php?sid='+(new Date()).getTime(),'ac9','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac9.moveTo(0,0);
+      ac9.focus();
+    }
+    else if (char==1011){ //who knows
+      var ac11;
+      try { ac11=window.opener.open('allcardscz.html','ac11','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac11=window.open('allcardscz.html','ac11','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac11.moveTo(0,0);
+      ac11.focus();
+    }
+    else if (char==1012){ //who knows
+      var ac12;
+      try { ac12=window.opener.open('allcardsgx.php?sid='+(new Date()).getTime(),'ac12','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac12=window.open('allcardsgx.php?sid='+(new Date()).getTime(),'ac12','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac12.moveTo(0,0);
+      ac12.focus();
+    }
+    else if (char==1013){ //who knows
+      var ac13;
+      try { ac13=window.opener.open('allcardsm2.html','ac13','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac13=window.open('allcardsm2.html','ac13','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac13.moveTo(0,0);
+      ac13.focus();
+    }
+    else if (char==1014){ //who knows
+      var ac14;
+      try { ac14=window.opener.open('allcardsem.html','ac14','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac14=window.open('allcardsem.html','ac14','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac14.moveTo(0,0);
+      ac14.focus();
+    }
+    else if (char==1015){ //who knows
+      var ac15;
+      try { ac15=window.opener.open('allcardsf.html','ac15','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac15=window.open('allcardsf.html','ac15','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac15.moveTo(0,0);
+      ac15.focus();
+    }
+    else if (char==1016){ //who knows
+      var ac16;
+      try { ac16=window.opener.open('allcardsg2.php?s=uwe-WA','ac16','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac16=window.open('allcardsg2.php?s=uwe-WA','ac16','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      //try { ac16=window.opener.open('allcardsy.html','ac16','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      //catch(err){ac16=window.open('allcardsy.html','ac16','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac16.moveTo(0,0);
+      ac16.focus();
+    }
+    else if (char==1017){ //who knows
+      var ac17;
+      try { ac17=window.opener.open('allcardsACBS.html','ac17','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac17=window.open('allcardsACBS.html','ac17','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac17.moveTo(0,0);
+      ac17.focus();
+    }
+    else if (char==1020){ //who knows
+      var ac20;
+      var gscore2=gscore;
+      if (isNaN(parseFloat(gscore2))) {
+        gscore2=gscore2.replace(/\+/g,"%2B");
+        gscore2=gscore2.replace(/\#/g,"%23");
+      }
+      try { ac20=window.opener.open('allcardsg2.php?s=chris-G2','ac20','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac20=window.open('allcardsg2.php?s=chris-G2','ac20','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac20.moveTo(0,0);
+      ac20.focus();
+    }
+    else if (char==1021){ //who knows
+      var ac21;
+      var gscore2=gscore;
+      if (isNaN(parseFloat(gscore2))) {
+        gscore2=gscore2.replace(/\+/g,"%2B");
+        gscore2=gscore2.replace(/\#/g,"%23");
+      }
+      try { ac21=window.opener.open('allcardsg2.php?s=chris-G2x','ac21','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac21=window.open('allcardsg2.php?s=chris-G2x','ac21','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac21.moveTo(0,0);
+      ac21.focus();
+    }
+    else if (char==1022){ //who knows
+      var ac22;
+      try { ac22=window.opener.open('allcardsg2.php?s=uwe-NL','ac22','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac22=window.open('allcardsg2.php?s=uwe-NL','ac22','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac22.moveTo(0,0);
+      ac22.focus();
+    }
+    else if (char==1023){ //who knows
+      var ac23;
+      try { ac23=window.opener.open('allcardsg2.php?s=uwe-FL','ac23','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac23=window.open('allcardsg2.php?s=uwe-FL','ac23','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac23.moveTo(0,0);
+      ac23.focus();
+    }
+    else if (char==1024){ //who knows
+      var ac24;
+      try { ac24=window.opener.open('allcardsg2.php?s=uwe-MB','ac24','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac24=window.open('allcardsg2.php?s=uwe-MB','ac24','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac24.moveTo(0,0);
+      ac24.focus();
+    }
+    else if (char==1025){ //who knows
+      var ac25;
+      var gscore2=gscore;
+      if (isNaN(parseFloat(gscore2))) {
+        gscore2=gscore2.replace(/\+/g,"%2B");
+        gscore2=gscore2.replace(/\#/g,"%23");
+      }
+      gscore2=2;
+      try { ac25=window.opener.open('allcardsg3.php?s='+gscore2,'ac25','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac25=window.open('allcardsg3.php?s='+gscore2,'ac25','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac25.moveTo(0,0);
+      ac25.focus();
+    }
+    else if (char==1026){ //who knows
+      var ac26;
+      try { ac26=window.opener.open('allcardsg2.php?s=uwe-BI2','ac26','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac26=window.open('allcardsg2.php?s=uwe-BI2','ac26','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac26.moveTo(0,0);
+      ac26.focus();
+    }
+    else if (char==1027){ //AG2
+      var ac27;
+      try { ac27=window.opener.open('allcardsg2.php?s=chris-AG2','ac27','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac27=window.open('allcardsg2.php?s=chris-AG2','ac27','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac27.moveTo(0,0);
+      ac27.focus();
+    }
+    else if (char==1028){ //
+      var ac28;
+      try { ac28=window.opener.open('allcardsg2.php?s=chris-JA','ac28','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac28=window.open('allcardsg2.php?s=chris-JA','ac28','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac28.moveTo(0,0);
+      ac28.focus();
+    }
+    else if (char==1029){ //
+      var ac29;
+      try { ac29=window.opener.open('allcardsg2.php?s=uwe-J2','ac29','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac29=window.open('allcardsg2.php?s=uwe-J2','ac29','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac29.moveTo(0,0);
+      ac29.focus();
+    }
+    else if (char==1030){ //
+      var ac30;
+      try { ac30=window.opener.open('allcardsg2.php?s=uwe-CD','ac30','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac30=window.open('allcardsg2.php?s=uwe-CD','ac30','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac30.moveTo(0,0);
+      ac30.focus();
+    }
+    else if (char==1031){ //
+      var ac31;
+      try { ac31=window.opener.open('allcardsg2.php?s=chris-G4','ac31','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac31=window.open('allcardsg2.php?s=chris-G4','ac31','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac31.moveTo(0,0);
+      ac31.focus();
+    }
+    else if (char==1032){ //
+      var ac32;
+      try { ac32=window.opener.open('allcardsg2.php?s=chris-G5','ac32','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac32=window.open('allcardsg2.php?s=chris-G5','ac32','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac32.moveTo(0,0);
+      ac32.focus();
+    }
+    else if (char==1033){ //
+      var ac33;
+      try { ac33=window.opener.open('allcardsg2.php?s=erpelboer-Erpel-G6','ac33','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac33=window.open('allcardsg2.php?s=erpelboer-Erpel-G6','ac33','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac33.moveTo(0,0);
+      ac33.focus();
+    }
+    else if (char==1034){ //
+      var ac34;
+      try { ac34=window.opener.open('allcardsg2.php?s=ken-Ken edited','ac34','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac34=window.open('allcardsg2.php?s=ken-Ken edited','ac34','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac34.moveTo(0,0);
+      ac34.focus();
+    }
+    else if (char==1035){ //
+      var ac35;
+      try { ac35=window.opener.open('allcardsg2.php?s=nwoll-G6 Collection','ac35','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac35=window.open('allcardsg2.php?s=nwoll-G6 Collection','ac35','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac35.moveTo(0,0);
+      ac35.focus();
+    }
+    else if (char==1036){ //
+      var ac36;
+      try { ac36=window.opener.open('allcardsg2.php?s=oxmond-Select-G6 only','ac36','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac36=window.open('allcardsg2.php?s=oxmond-Select-G6 only','ac36','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac36.moveTo(0,0);
+      ac36.focus();
+    }
+    else if (char==1037){ //
+      var ac37;
+      try { ac37=window.opener.open('allcardsg2.php?s=sandswoll-pos g6','ac37','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac37=window.open('allcardsg2.php?s=sandswoll-pos g6','ac37','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac37.moveTo(0,0);
+      ac37.focus();
+    }
+    else if (char==1038){ //
+      var ac38;
+      try { ac38=window.opener.open('allcardsg2.php?s=chris-D-42','ac38','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac38=window.open('allcardsg2.php?s=chris-D-42','ac38','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac38.moveTo(0,0);
+      ac38.focus();
+    }
+    else if (char==1039){ //
+      var ac39;
+      try { ac39=window.opener.open('allcardsg2.php?s=chris-T-8','ac39','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac39=window.open('allcardsg2.php?s=chris-T-8','ac39','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac39.moveTo(0,0);
+      ac39.focus();
+    }
+    else if (char==1040){ //
+      var ac40;
+      try { ac40=window.opener.open('allcardsg2.php?s=rookie-Rookie-G6','ac40','width=1250, height='+h+', scrollbars=1, resizable=1') }
+      catch(err){ac40=window.open('allcardsg2.php?s=rookie-Rookie-G6','ac40','width=1250, height='+h+', scrollbars=1, resizable=1');};
+      if (!delay_open) ac40.moveTo(0,0);
+      ac40.focus();
+    }
+
+    if (father=='board' && numberofplayers==1 && char==48){   // 0
+      if (mynumber!=-1){
+        var stretchit=0;
+        try{if (stretch>0) stretchit=stretch;}catch(err){};
+        if (stretchit==0) newImage( sendData('specialserver.php?get=1&sid='+(new Date()).getTime(),'',true,0,false),0,specialpositions[0]*scale,specialpositions[1]*scale);
+        else newImage( sendData('specialserver.php?get=1&sid='+(new Date()).getTime(),'',true,0,false),0,(specialpositions2[0]+100)*scale,specialpositions2[1]*scale);
+      }else alert('Spectators can not get a new card.');
+    }
+    //alert(father+' '+window.opener.warn+' '+char);
+    if (father=='board' && window.opener.warn && (char==85 || char=='71' || char=='86' || char=='73' || char=='68' || char=='89' || char=='69' || char=='66')){
+      var what="something";
+      var x;
+      if (findIndex(keys1,char)!=-1) what=keys1[findIndex(keys1,char)+1];
+      else if (findIndex(keys2,char)!=-1) what=keys2[findIndex(keys2,char)+1];  
+      else if (findIndex(keys3,char)!=-1) what=keys3[findIndex(keys3,char)+1];
+      else if (findIndex(keys4,char)!=-1) what=keys4[findIndex(keys4,char)+1];    
+
+      if (!confirm('You are about to place '+what+' on the gameboard.\r\nTo place on your farm, click your farm window first\r\nand then hit your keyboard key.\r\nClick OK to place here anyway. Click cancel not to place\r\n(or use actions button below end turn)')) return;
+      window.opener.warn=false;
+    }
+
+
+    if (char==85) newImage('occ-beggingcard-j',0,-1,-1); //u
+    var num;
+    try{
+      if (father=='board') num=mynumber;
+      else num=farmnumber;
+    }catch(err){num=-1};
+    if (num==-1) num=0;
+    if (char==84) score(num,0); //t
+    if (char==88) { //x
+      //newImage('occhzt-rounds-j',0,-1,-1); 
+      var zoomin;
+      var h=250;
+      var w=380;
+      if (is_chrome) h=h+chromeadjust;
+      var name="../Images/occhztrounds.jpg";
+      zoomin=window.open('cardzoom.html?'+name,'name'+(new Date()).getTime(),'width='+w+', height='+h+', resizable=0, scrollbars=0');
+      if (!delay_open) zoomin.moveTo(screen.width-w,0);
+      zoomin.focus();
+    }
+
+    var color=mycolor;
+    try{
+     if (father=='board') color=playercolors[currentplayer];
+     else color=window.opener.gameboard.playercolors[farmnumber];
+    }catch(err){};
+
+    if (char=='75') {
+      try{ color=window.opener.guesttype;
+      }catch(err){}
+      if (color=='none'){
+        color=mycolor;
+        char=80;
+      }
+    }
+
+    try{
+    if (newdragdrop==1 && father=='farm')  //newdragdrop tests for new dragdrop.js
+    if ( char==90 || (evt.shiftKey && (char==78 || char==77))) { //shift n,m or just z
+      //if (char==77){
+      //  alert("There is no need to hit m anymore.  Move your \r\nmouse to where you want a fence and hit n.  \r\nThe computer will figure out if you need a \r\nhorizontal or vertical piece.");
+      //  return;
+      //}
+      var xx=window.mousex/scale;
+      var yy=window.mousey/scale;
+      var hh=firstGreater(xx,fence1);
+      var vv=firstGreater(yy,fence0);
+      if (vv!=-1 && vv%2==0){
+        vv=vv/2;
+        hh=firstGreater(xx,fence4);  
+        if (hh>=0 && hh<=4 && vv<=3) newImage('horizontalfence-'+color+'-g',0,scale*fencehx[hh],scale*fencehy[vv],false,false,true); //new fence
+        else alert('To place fences, move your mouse to where you want a \r\nfence and then press z. To avoid using the mouse, \r\nplace a horizontal fence with n and vertical with m.');
+      }
+      else if (hh!=-1 && hh%2==0){
+        hh=hh/2;
+        vv=firstGreater(yy,fence3);
+        if (hh<=5 && vv<=2 && vv>=0) newImage('verticalfence-'+color+'-g',0,scale*fencevx[hh],scale*fencevy[vv],false,false,true);
+        else alert('To place fences, move your mouse to where you want a \r\nfence and then press z. To avoid using the mouse, \r\nplace a horizontal fence with n and vertical with m.');
+      }
+      else if (hh!=-1){
+        hh=(hh-1)/2;
+        vv=firstGreater(yy,fence2);
+        if (hh<=4 && vv<=3 && vv>=0) newImage('horizontalfence-'+color+'-g',0,scale*fencehx[hh],scale*fencehy[vv],false,false,true);
+        else alert('To place fences, move your mouse to where you want a \r\nfence and then press z. To avoid using the mouse, \r\nplace a horizontal fence with n and vertical with m.');
+      }
+      else{
+        alert('To place fences, move your mouse to where you want a \r\nfence and then press z. To avoid using the mouse, \r\nplace a horizontal fence with n and vertical with m.');
+      }
+    return;
+    }
+    }catch(err){};
+    
+    var xxx=-1;
+    var yyy=-1;
+    try{
+      if (newdragdrop==1 && evt.shiftKey){ //if shift, place under mouse
+        xxx=mousex;
+        yyy=mousey;
+      }
+    }
+    catch(err){};
+    var index=findIndex(keys1,char);
+    if (index!=-1) {
+      if (xxx!=-1) {xxx-=19*scale; yyy-=19*scale; }
+      newImage('resource-'+keys1[index+1]+'-g',1,xxx,yyy)
+    }
+    else {
+      index=findIndex(keys2,char);
+      if (index!=-1) {
+        if (xxx!=-1) {xxx-=12*scale; yyy-=12*scale; }
+        var theidentifier='livestock';
+        if (keys2[index+1]=='horse') theidentifier='livestock3'
+        newImage(theidentifier+'-'+keys2[index+1]+'-g',1,xxx,yyy);
+      }
+          else {
+            index=findIndex(keys3,char);
+            if (index!=-1) {
+              if (xxx!=-1) {xxx-=39*scale; yyy-=39*scale; }
+              var more='';
+              if (keys3[index+1]=='moor') more=''+(Math.floor(Math.random()*5)+1);
+              newImage(keys3[index+1]+'-'+keys3[index+2]+more+'-j',0,xxx,yyy);
+            }
+              else {
+                index=findIndex(keys4,char);
+                if (index!=-1) {
+                  if (xxx!=-1) {
+                    var xindex=findIndex(sizes,keys4[index+1])+1;
+                    var yindex=findIndex(sizes2,keys4[index+1])+1;
+                    xxx-=sizes[xindex]/2*scale; 
+                    yyy-=sizes2[yindex]/2*scale; 
+                  }
+                  newImage(keys4[index+1]+'-'+color+'-g',0,xxx,yyy,false,false,true); //new fence
+                }
+                else{
+                  //index=findIndex(keys5,char);
+                  //if (index!=-1) newImage('card3-'+keys5[index+1]+'-j',0,xxx,yyy);
+                }
+              }
+          }
+    }  
+}
+
+function firstGreater(x,arr){
+  var result=-1;
+  for (var i=0;i<arr.length;i++) if (x>arr[i]) result=i;
+  return result;
+}
+
+function passOn(){
+  alert("To pass a card to the next player, send the card \r\n to the board before you click End Turn. \r\n The next player can then pull it off the board \r\n on their turn.");
+}
+
+function findIndex(haystack,needle){
+  var i;
+  for (i=0;i<haystack.length;i++)
+    if (haystack[i]==needle)
+      break;
+  if (i==haystack.length) return -1;
+  else return i;
+}
+
+function hide(obj){
+   obj.style.visibility='hidden';
+   obj.hidden=true;
+}
+
+function add(x,obj){
+  var num=document.getElementById(obj.id+"num");
+  var newx=(parseFloat(num.innerHTML)+x);
+  if (newx<=0) {
+    remove(obj);
+    dontrecord2=true;
+  }
+  else num.innerHTML=''+newx;
+  var type=obj.type;
+  if (x<0 && father=='farm'){
+   if (type=='food') window.opener.resourcesowe[0]+=x;
+   else if (type=='wood') window.opener.resourcesowe[1]+=x;
+   else if (type=='clay') window.opener.resourcesowe[2]+=x;
+   else if (type=='reed') window.opener.resourcesowe[3]+=x;
+   else if (type=='stone') window.opener.resourcesowe[4]+=x;
+  }
+  try{
+  var extrastr;
+  var identifier=obj.identifier;
+  if (x>0) extrastr="Added "+x+" of ";
+  else extrastr="Removed "+(-x)+" of ";
+  if (!window.opener.gameboard.dontrecord && okToRecord())
+    window.opener.gameboard.sendData('turnrecorder.php','record='+extrastr+type+' '+identifier+' on '+father+'&action=notbegin',false,-2,true);
+
+  else if (!dontrecord2 && father=='farm' && farmnumber!=window.opener.gameboard.currentplayer && farmnumber==window.opener.gameboard.mynumber)
+    window.opener.gameboard.sendData('turnrecorder.php','record=('+window.opener.gameboard.playernames[window.farmnumber]+' '+extrastr+type+' '+identifier+' farm)&action=notbegin&outoforder=true',false,-2,true);
+
+  //else alert('NOP');
+
+  }catch(err){};
+
+}
+
+function stringRemove(str,word){
+  var index;
+  var extra=0;
+  index=str.indexOf(', '+word);
+  if (index==-1) index=str.indexOf(word);
+  else extra=2;
+  if (index==-1) return str;
+  var l=word.length+extra;
+  var temp=str.substring(0,index)+str.substring(index+l);
+  //alert(temp);
+  return temp;
+}
+
+function remove2(obj){
+  try{
+  //used to remove hand cards and add back into deck
+  var type='occ';
+  if (obj.identifier.indexOf('minor')!=-1) type='minor';
+  var num=0;
+  var removed=obj.identifier+'-'+obj.type+'-j';
+  var myname=window.opener.myname;
+  var result=window.opener.gameboard.sendData('deckserver.php?name='+myname+'&type='+type+'&num='+num+'&return='+removed,'',true,0,true);
+  //alert(result);
+  }catch(err){};
+  remove(obj);
+}
+
+function remove(obj,dont){
+
+try{ if (father=='hand') mulligan=-1; }
+catch(err){};
+
+var type=obj.type;
+var identifier=obj.identifier;
+try{ 
+  if (!dont && father=='farm' && farmnumber==window.opener.mynumber && window.opener.farmsloaded[farmnumber]==true){
+  if (identifier!='building'){
+   var indx=findIndex(paycards,type)+1;
+   if (indx!=0 && type!='field'){
+     for (var j=0;j<5;j++) window.opener.resourcesowe[j]-= parseFloat( paycards[indx].substring(j,j+1) );
+     window.opener.resourcesnames=stringRemove(window.opener.resourcesnames,paycards[indx-1]);
+   } 
+   indx=findIndex(paycards2,type)+1;
+   if (indx!=0){
+     for (var j=0;j<5;j++) window.opener.resourcesowe[j]-= parseFloat( paycards2[indx].substring(j,j+1) );
+     window.opener.resourcesnames=stringRemove(window.opener.resourcesnames,paycards2[indx-1]);
+   }   
+   indx=findIndex(paycards3,type)+1;
+   if (indx!=0){
+     for (var j=0;j<5;j++) window.opener.resourcesowe[j]-= parseFloat( paycards3[indx].substring(j,j+1) );
+     window.opener.resourcesnames=stringRemove(window.opener.resourcesnames,paycards3[indx-1]);
+   }  
+   indx=findIndex(paycards4,type)+1;
+   if (indx!=0){
+     for (var j=0;j<5;j++) window.opener.resourcesowe[j]-= parseFloat( paycards4[indx].substring(j,j+1) );
+     window.opener.resourcesnames=stringRemove(window.opener.resourcesnames,paycards4[indx-1]);
+   }
+  }
+   indx=findIndex(paycards5,type)+1;
+   if (indx!=0 && (identifier=='fminor' || identifier=='mminor' || identifier=='major')){
+     for (var j=0;j<5;j++) window.opener.resourcesowe[j]-= parseFloat( paycards5[indx].substring(j,j+1) );
+     window.opener.resourcesnames=stringRemove(window.opener.resourcesnames,paycards5[indx-1]);
+   }  
+   indx=findIndex(paycards6,type)+1;
+   if (indx!=0 && identifier=='gminor'){
+     for (var j=0;j<5;j++) window.opener.resourcesowe[j]-= parseFloat( paycards6[indx].substring(j,j+1) );
+     window.opener.resourcesnames=stringRemove(window.opener.resourcesnames,paycards6[indx-1]);
+   } 
+   indx=findIndex(paycards7,type)+1;
+   if (indx!=0 && identifier=='yminor'){
+     for (var j=0;j<5;j++) window.opener.resourcesowe[j]-= parseFloat( paycards7[indx].substring(j,j+1) );
+     window.opener.resourcesnames=stringRemove(window.opener.resourcesnames,paycards7[indx-1]);
+   }
+   indx=findIndex(paycards8,type)+1;
+   if (indx!=0 && identifier=='xminor'){
+     for (var j=0;j<5;j++) window.opener.resourcesowe[j]-= parseFloat( paycards8[indx].substring(j,j+1) );
+     var indx2=paycards8[indx-1].indexOf('_');
+     window.opener.resourcesnames=stringRemove(window.opener.resourcesnames,paycards8[indx-1].substring(0,indx2).toLowerCase());
+   }
+   indx=findIndex(paycards9,type)+1;
+   if (indx!=0 && identifier=='xminor'){
+     for (var j=0;j<5;j++) window.opener.resourcesowe[j]-= parseFloat( paycards9[indx].substring(j,j+1) );
+     var indx2=paycards9[indx-1].indexOf('_');
+     window.opener.resourcesnames=stringRemove(window.opener.resourcesnames,paycards9[indx-1].substring(0,indx2).toLowerCase());
+   } 
+
+   indx=findIndex(paycards10,type)+1;
+   if (indx!=0 && identifier=='building'){
+     for (var j=0;j<5;j++) window.opener.resourcesowe[j]-= parseFloat( paycards10[indx].substring(j,j+1) );
+     var indx2=paycards10[indx-1].indexOf('_');
+     window.opener.resourcesnames=stringRemove(window.opener.resourcesnames,paycards10[indx-1].substring(0,indx2).toLowerCase());
+   } 
+
+   if (identifier=='hut' && type=='wood') { 
+    window.opener.resourcesowe[1]-=5;
+    window.opener.resourcesowe[3]-=2;
+    window.opener.resourcesnames=stringRemove(window.opener.resourcesnames,'woodhut');
+   }
+   else if (identifier=='hut' && type=='clay') { 
+    window.opener.resourcesowe[2]-=5;
+    window.opener.resourcesowe[3]-=2;
+    window.opener.resourcesnames=stringRemove(window.opener.resourcesnames,'clayhut');
+   }
+   else if (identifier=='hut' && type=='stone') { 
+    window.opener.resourcesowe[4]-=5;
+    window.opener.resourcesowe[3]-=2;
+    window.opener.resourcesnames=stringRemove(window.opener.resourcesnames,'stonehut');
+   }
+   else if (identifier=='stable') {
+     window.opener.resourcesowe[1]-=2;
+     window.opener.resourcesnames=stringRemove(window.opener.resourcesnames,'stable');
+   }
+   else if (identifier=='verticalfence' || identifier=='horizontalfence') {
+     window.opener.resourcesowe[1]-=1;
+     window.opener.resourcesnames=stringRemove(window.opener.resourcesnames,'fnc');
+     if (window.opener.gameboard.expandsion==5) newImage('resource-marker-g',1,-1,-1);
+   }
+
+  }
+}catch(err){}; 
+
+
+  var x=0;
+  try{
+    var num=document.getElementById(obj.id+"num");
+    x=parseFloat( num.innerHTML );
+    num.parentNode.removeChild(num);
+  }catch(err){};
+  //var type=obj.type; 
+  if (!dont && x>0 && father=='farm'){
+   if (type=='food') window.opener.resourcesowe[0]-=x;
+   else if (type=='wood') window.opener.resourcesowe[1]-=x;
+   else if (type=='clay') window.opener.resourcesowe[2]-=x;
+   else if (type=='reed') window.opener.resourcesowe[3]-=x;
+   else if (type=='stone') window.opener.resourcesowe[4]-=x;
+  }
+
+  obj.parentNode.removeChild(obj);
+
+  try{
+  var extrastr='';
+  if (x>0) extrastr=x+' of ';
+  if (!window.opener.gameboard.dontrecord && okToRecord())
+  window.opener.gameboard.sendData('turnrecorder.php','record=Removed '+extrastr+type+' '+identifier+' on '+father+'&action=notbegin',false,-2,true);
+
+  if (!dontrecord2 && father=='farm' && farmnumber!=window.opener.gameboard.currentplayer && farmnumber==window.opener.gameboard.mynumber)
+    window.opener.gameboard.sendData('turnrecorder.php','record=('+window.opener.gameboard.playernames[window.farmnumber]+' Removed '+extrastr+type+' '+identifier+' farm)&action=notbegin&outoforder=true',false,-2,true);
+
+  }catch(err){};
+
+}
+
+function showCoords(obj){
+  alert('Unscaled at '+obj.offsetLeft/scale+','+obj.offsetTop/scale);
+}
+
+function getName(obj){
+  var ext='g';
+  if (obj.src.indexOf('jpg')!=-1) ext='j';
+  var name=obj.identifier+'-'+obj.type+'-'+ext;
+  if (obj.grow) name+='-'+obj.growidentifier+'-'+obj.growby;
+  if (obj.identifier=='free') name='free-'+obj.type+'-'+(obj.offsetWidth/scale)+':'+(obj.offsetHeight/scale);
+  return name;
+}
+
+function getNum(obj,where){
+  if (!where) where=window;
+  var num=-1;
+  if (obj.movable) num=0;
+  if (obj.numbered)
+    num=parseFloat(where.document.getElementById(obj.id+'num').innerHTML); 
+  if (obj.style.visibility=='hidden' || obj.hidden) num=-2;
+  return num;
+}
+
+function take(obj){
+  try{window.opener.boardready}catch(err){remove(obj);return}; //just remove if running board alone.
+  var name=getName(obj);
+  var num=getNum(obj);
+  if (!window.opener.blockaction || currentplayer==mynumber) {
+    window.opener.farms[currentplayer].newImage(name,num,-1,-1);
+    remove(obj);
+  }
+  else alert('Wait until its your turn to take stuff.');
+}
+
+function toFarm(obj,x){
+  try{window.opener.boardready}catch(err){remove(obj);return}; //just remove if running board alone.
+  var name=getName(obj);
+  var num=getNum(obj);
+  window.opener.farms[x].newImage(name,num,-1,-1,0,1);
+  remove(obj);
+}
+
+function toMe(obj){
+  try{window.opener.boardready}catch(err){remove(obj);return}; //just remove if running board alone.
+  var name=getName(obj);
+  var num=getNum(obj);
+  window.opener.farms[handnumber].newImage(name,num,-1,-1);
+  remove(obj);
+}
+
+function toHand(obj){
+  try{window.opener.boardready}catch(err){remove(obj);return}; //just remove if running board alone.
+  var name=getName(obj);
+  var num=getNum(obj);
+  if (father!='board' || !window.opener.blockaction || currentplayer==mynumber){
+    window.opener.myhand.newImage(name,num,-1,-1);
+    remove(obj);
+  }
+  else alert("Wait until it's your turn to take stuff.");
+}
+
+function toBoard(obj){
+ if (window.opener.gameboard.currentplayer==window.opener.mynumber){
+  try{window.opener.boardready}catch(err){remove(obj);return}; //just remove if running farm alone.
+  var name=getName(obj);
+  var num=getNum(obj); 
+  window.opener.gameboard.newImage(name,num,-1,-1,1);
+  remove(obj);
+ }
+ else alert('Send to board on your turn.');
+}
+
+function toBoard2(obj){
+  try{window.opener.boardready}catch(err){remove(obj);return}; //just remove if running farm alone.
+  var name=getName(obj);
+  var num=getNum(obj); 
+  window.opener.gameboard.newImage(name,num,-1,-1,1,1);
+  remove(obj);
+}
+
+function goHome(obj){ //used for peeps
+  var name=getName(obj);
+  var num=getNum(obj);
+  if (num==-2) num=0; //turn invisible guy visible on way home.
+  var index=findIndex(playercolors,obj.type);
+  if (index==-1) {
+    alert("Can't find home.");
+    return;
+  }
+  try{window.opener.farms[index].newImage(name,num,-1,-1);}catch(err){};
+  if (currentplayer==index || obj.identifier!='peep') remove(obj);
+  else {
+    obj.style.visibility='hidden';
+    obj.hidden=true;
+  }
+}
+
+
+function transfer(obj){
+  try{window.opener.boardready}catch(err){remove(obj);return}; //just remove if running farm alone.
+  var name=getName(obj);
+  var num=getNum(obj); 
+  //remove(obj);
+  if (window.opener.gameboard.newImage(name,num,-1,-1,1)) remove(obj);
+}
+
+function split(obj,dontremove){
+  var name=getName(obj);
+  var num=getNum(obj);
+  if (num>1 && !dontremove) {
+    add(-1,obj);
+    num=1;
+  }
+  if (dontremove) num=1;
+  var x=5; var y=5;
+  if (obj.numbered){
+    x=20+obj.offsetWidth;
+    y=0;
+  }
+  newImage(name,num,obj.offsetLeft+x,obj.offsetTop+y,1);
+}
+
+function doMulligan(type){
+  if (mynumber==-1){
+    alert('You must be playing to take a Mulligan.');
+    return;
+  }
+  if (window.opener.myhand.mulligan==0){
+    alert("You must select 'Allow Mulligans' \r\nbefore starting a game to use \r\nthis starting hand variant.");
+    return;
+  }
+  if (roundnumber>1){
+    alert('You cannot do a Mulligan after the game begins.');
+    return;
+  }
+  if (window.opener.myhand.mulligan==-1){
+    alert("You can no longer do a Mulligan.\r\nYou've played a card");
+    return;
+  }
+  newCards(type,-1);
+}
+
+function newCards(type,num,broom){
+  if (broom==1 && window.opener.mynumber==-1){
+    alert('You must be playing to use broom.');
+    return;
+  }
+  var myhand=window.opener.myhand;
+  var images=myhand.document.getElementsByTagName('img');
+  var temp;
+  var low=1000000;
+  var high=0;
+  var removed='';
+  var removethese=new Array();
+  var index=0;
+  for (var i=0;i<images.length;i++){
+    if (images[i].identifier.indexOf(type)!=-1){
+      if (removed=='') removed+=images[i].identifier+"-"+images[i].type+"-j";
+      else removed+=";"+images[i].identifier+"-"+images[i].type+"-j";
+      removethese[index++]=images[i];
+      temp=images[i].xpos/window.opener.handscale;
+      if (temp<low) low=temp;
+      if (temp>high) high=temp;
+    }
+  }
+  dontrecord=true;
+  for (var i=0;i<removethese.length;i++) remove(removethese[i]);
+  dontrecord=false;
+  if (num==-1) num=removethese.length-1;
+  else if (num==-2) num=removethese.length;
+  var mename=window.opener.gameboard.myname;
+  if (broom==1) {
+    num=7;
+    if (type=='minor'){
+      window.opener.gameboard.sendData('chatserver.php?sid='+(new Date()).getTime()+'&name=Game Manager&comment='+mename+' plays broom','',true,0,true);
+      window.opener.farms[handnumber].newImage('kminor-brooom-j',0,-1,-1);
+    }
+    else {
+      window.opener.gameboard.sendData('chatserver.php?sid='+(new Date()).getTime()+'&name=Game Manager&comment='+mename+' plays professor','',true,0,true);
+      window.opener.farms[handnumber].newImage('occ-g1_professor-j',0,-1,-1);
+    }
+  }
+  else broom=0;
+  var result=window.opener.gameboard.sendData('deckserver.php?name='+mename+'&type='+type+'&num='+num+'&broom='+broom+'&return='+removed,'',true,0,false);
+  var parts=result.split(";");
+  var count=parts[0];
+  var space=0;
+  if (count>1) space=(high-low)/(count-1);
+  for (var i=0;i<count;i++) myhand.newImage(parts[i+1],0,space*i+low,0);
+  window.opener.gameboard.sendHand(window.opener.gameboard.mynumber);
+}
+
+function sowC(x){
+  var found=false;
+  locateFieldsCrops();
+  var images=document.getElementsByTagName('img');
+  for (var i=1;i<images.length;i++){
+    if (images[i].type==x){
+      var s=whichFarmSpace2(images[i]);
+      if (!found && (s==-1 || fieldplaces[s]=='')){
+        sow(images[i]);
+        found=true;
+      }
+    }
+  }
+  if (!found) alert('You dont have any '+x);
+}
+  
+
+function sow(obj){
+  if (obj.type=='flower'){
+    var images=document.getElementsByTagName('img');
+    for (var i=1;i<images.length;i++){
+      if (images[i].type=='flower' && images[i].offsetLeft/scale>38 && images[i].offsetLeft/scale<520 && images[i].offsetTop/scale>102 && images[i].offsetTop/scale<367){
+         add(1,images[i]);
+      }
+    }
+    return;
+  }
+  locateFieldsCrops();
+  //temp='';
+  //for (var i=1;i<16;i++) temp+='('+fieldplaces[i]+')';
+  //alert(temp);
+  index=0;
+  for (var i=1;i<16;i++)
+    if (fieldplaces[i]!='' && cropplaces[i]=='') index=i;
+  if (index==0) {
+    alert('There are no empty fields to sow into.');
+    return;
+  }
+  var field=document.getElementById(fieldplaces[index]);
+  if (obj.type=='grain') num=3;
+  else if (obj.type=='vegtable') num=2;
+  var x=field.xpos+field.offsetWidth/2-obj.offsetWidth/2;
+  var y=field.ypos+field.offsetHeight/2-obj.offsetWidth/2;
+  var more='';
+  //try{if (farmimage!='farm.jpg') more='2';}catch(err){}
+  newImage('resource'+more+'-'+obj.type+'-g',num,x,y);
+  add(-1,obj);  
+}
+
+function findEmptyHut(){
+  locateHutsPeeps();
+  index=0;
+  index2=0;
+  output='';
+  for (var i=1;i<16;i++) {
+    if (fieldplaces[i]!='' && cropplaces[i]=='') index=i;
+    if (fieldplaces[i]!='') index2=i;
+  }
+  if (index==0) index=index2;
+  if (index2==0){
+    return (new Array(-1,-1));
+  }
+  var field=document.getElementById(fieldplaces[index]);
+  var x=field.xpos+field.offsetWidth/2-(54*scale)/2;
+  var y=field.ypos+field.offsetHeight/2-(54*scale)/2;
+  return (new Array(x,y));
+}
+
+function harvestAll(obj){
+  var harv=new Array();
+  var harvindex=0;
+  try{
+  if (obj.type=='flower'){
+    var images=document.getElementsByTagName('img');
+    for (var i=1;i<images.length;i++){
+      if (images[i].type=='flower' && images[i].offsetLeft/scale>38 && images[i].offsetLeft/scale<520 && images[i].offsetTop/scale>102 && images[i].offsetTop/scale<367){
+         harv[harvindex++]=images[i].id;
+      }
+    }
+  }
+  else {
+    locateFieldsCrops();
+    for (var i=1;i<16;i++){
+      if (fieldplaces[i]!='' && cropplaces[i]!='') harv[harvindex++]=cropplaces[i]; 
+    }
+  }
+  }catch(err){
+    locateFieldsCrops();
+    for (var i=1;i<16;i++){
+      if (fieldplaces[i]!='' && cropplaces[i]!='') harv[harvindex++]=cropplaces[i]; 
+    }
+  }
+  var v=0;
+  var g=0;
+  var f=0;
+  var crop;
+  for (var i=0;i<harvindex;i++){
+    crop=document.getElementById(harv[i]);
+    if (crop.type=='grain') g++;
+    else if (crop.type=='vegtable') v++;
+    else if (crop.type=='flower') f++;
+    add(-1,crop);
+  }
+  var more='';
+  //try{if (farmimage!='farm.jpg') more='2';}catch(err){}
+  if (g>0) newImage('resource'+more+'-grain-g',g,-1,-1); 
+  if (v>0) newImage('resource'+more+'-vegtable-g',v,-1,-1);
+  if (f>0) newImage('resource'+more+'-flower-g',f,-1,-1);
+}
+
+function whichFarmSpace2(obj){
+  var x=obj.xpos/scale-19+obj.offsetWidth/(2*scale);
+  var y=obj.ypos/scale-87+obj.offsetHeight/(2*scale);
+  var space=-1;
+  if (x>0 && x<545 && y>0 && y<327){
+    r=Math.floor(y/109);
+    c=Math.floor(x/109);
+    space=5*r+c+1;
+  }
+  return space;
+}
+
+function locateFieldsCrops(){
+  for (var i=0;i<16;i++){
+    cropplaces[i]='';
+    fieldplaces[i]='';
+  }
+  var images=document.getElementsByTagName('img');
+  for (var i=1;i<images.length;i++)
+    if (images[i].identifier=='field') fieldplaces[ whichFarmSpace2(images[i]) ]=images[i].id;
+  for (var i=1;i<images.length;i++)
+    if (images[i].type=='vegtable' || images[i].type=='grain') cropplaces[ whichFarmSpace2(images[i]) ]=images[i].id;
+}
+
+function locateHutsPeeps(){
+  for (var i=0;i<16;i++){
+    cropplaces[i]='';
+    fieldplaces[i]='';
+  }
+  var images=document.getElementsByTagName('img');
+  for (var i=1;i<images.length;i++)
+    if (images[i].identifier=='hut') fieldplaces[ whichFarmSpace2(images[i]) ]=images[i].id;
+  for (var i=1;i<images.length;i++)
+    if (images[i].identifier=='peep' || images[i].identifier=='guest') cropplaces[ whichFarmSpace2(images[i]) ]=images[i].id;
+}
+
+function rotate(obj){
+  var newidentifier;
+  if (obj.identifier=='horizontalfence') newidentifier='verticalfence';
+  else newidentifier='horizontalfence';
+  ren=true;
+  newImage(newidentifier+'-'+mycolor+'-g',0,obj.offsetLeft,obj.offsetTop);
+  ren=false;
+  remove(obj);
+}
+
+function makeRoom(){
+  var type='wood';
+  var images=document.getElementsByTagName('img');
+    for (j=1;j<images.length;j++) if (images[j].identifier=='hut') type=images[j].type;
+  newImage('hut-'+type+'-j',0,-1,-1);
+}
+
+function newMaterial(obj2,newmat){
+  //var images=document.getElementsByTagName('img');
+  //for (j=1;j<images.length;j++){
+  //  if (images[j].identifier=='hut'){
+  //    newImage('hut-'+newmat+'-j',0,images[j].offsetLeft,images[j].offsetTop);
+  //    remove(images[j]);
+  //  }
+  //}
+  var obj;
+  var huts=new Array();
+  var hutindex=0;
+  var images=document.getElementsByTagName('img');
+  for (var i=1;i<images.length;i++)
+    if (images[i].identifier=='hut' && images[i].type!=newmat) huts[hutindex++]=images[i];
+ for (var j=0;j<hutindex;j++){
+  obj=huts[j];
+  var x=obj.offsetLeft;
+  var y=obj.offsetTop;
+  remove(obj,true);
+  ren=true;
+  newImage('hut-'+newmat+'-j',0,x,y);
+  ren=false;
+ if (father=='farm'){
+  try{
+   if (newmat=='wood') { 
+    window.opener.resourcesowe[1]+=1;
+    if (window.opener.resourcesnames!='') window.opener.resourcesnames+=', ';
+    window.opener.resourcesnames+='renW';
+   }
+   else if (newmat=='clay') { 
+    window.opener.resourcesowe[2]+=1;
+    if (window.opener.resourcesnames!='') window.opener.resourcesnames+=', ';
+    window.opener.resourcesnames+='renC';
+   }
+   else if (newmat=='stone') { 
+    window.opener.resourcesowe[4]+=1;
+    if (window.opener.resourcesnames!='') window.opener.resourcesnames+=', ';
+    window.opener.resourcesnames+='renS';
+   }
+  }catch(err){};
+  }//for huts
+  //renned=true;
+
+ } //for loop
+ window.opener.resourcesowe[3]++;
+}
+
+function zoomIn2(identifier,type){
+  var zoomin;
+  var w=250;
+  var h=380;
+  var code=type.substring(0,2);
+  var name="../Images/"+identifier+type+'.jpg';
+  if (identifier.indexOf('hzt')!=-1){
+    h=250;
+    w=380;
+  }
+  else if (identifier.indexOf('aminor')!=-1 || code=='a1' || code=='a3' || code=='a4'){
+    h=430;
+    w=250;
+  }
+  else if (identifier.indexOf('cminor')!=-1 || code=='c1' || code=='c3' || code=='c4'){
+    h=430;
+    w=250;
+  }
+  else if (identifier.indexOf('gminor')!=-1 || code=='g1' || code=='g3' || code=='g4'){
+    h=430;
+    w=250;
+  }
+  else if (identifier.indexOf('xminor')!=-1 || code=='x1' || code=='x3' || code=='x4'){
+    name="../Cards/Cards/"+identifier+type+'.jpg';
+    h=430;
+    if (is_safari) h=475;
+    w=250;
+  }
+  if (is_chrome) h=h+chromeadjust;
+  zoomin=window.open('cardzoom.html?'+name,'name'+(new Date()).getTime(),'width='+w+', height='+h+', resizable=0, scrollbars=0');
+  if (!delay_open) zoomin.moveTo(screen.width-w,0);
+  zoomin.focus();
+}
+
+function zoomIn(obj){
+  var zoomin;
+  var w=250;
+  var h=380;
+  var code=obj.type.substring(0,2);
+  var name="../Images/"+obj.identifier+obj.type+'.jpg';
+  if (obj.identifier.indexOf('hzt')!=-1){
+    h=250;
+    w=380;
+  }
+  else if (obj.identifier.indexOf('aminor')!=-1 || code=='a1' || code=='a3' || code=='a4'){
+    h=430;
+    w=250;
+  }
+  else if (obj.identifier.indexOf('cminor')!=-1 || code=='c1' || code=='c3' || code=='c4'){
+    h=430;
+    w=250;
+  }
+  else if (obj.identifier.indexOf('gminor')!=-1 || code=='g1' || code=='g3' || code=='g4'){
+    h=430;
+    w=250;
+  }
+  else if (obj.identifier.indexOf('xminor')!=-1 || code=='x1' || code=='x3' || code=='x4'){
+    h=430;
+    if (is_safari) h=475;
+    w=250;
+    name="../Cards/Cards/"+obj.identifier+obj.type+'.jpg';
+  }
+  if (is_chrome) h=h+chromeadjust;
+  zoomin=window.open('cardzoom.html?'+name,'name'+(new Date()).getTime(),'width='+w+', height='+h+', resizable=0, scrollbars=0');
+  if (!delay_open) zoomin.moveTo(screen.width-w,0);
+  zoomin.focus();
+}
+
+function imageMoved(obj,extra){
+
+ //if (obj==window.opener.currentpeep) alert('Current Peep');
+ obj.xpos=obj.offsetLeft;
+ obj.ypos=obj.offsetTop;
+ if (obj.numbered==true){
+   document.getElementById(obj.id+'num').xpos=document.getElementById(obj.id+'num').offsetLeft;
+   document.getElementById(obj.id+'num').ypos=document.getElementById(obj.id+'num').offsetTop;
+ }
+ if (father=='board' && obj.identifier=='stable' && obj.type==playercolors[currentplayer] && mynumber==currentplayer) checkSpecialAction(obj);
+ else if (father=='board' && obj.identifier=='horizontalfence' && obj.type==playercolors[currentplayer] && mynumber==currentplayer) checkSpecialAction(obj);
+ 
+ var id=obj.id;
+ var combined=false;
+ var images=document.getElementsByTagName('img');
+ var identifier=obj.identifier;
+ if (obj.numbered){
+  var type=obj.type;
+  //var images=document.getElementsByTagName('img');
+  for (i=0;i<images.length;i++){
+    if (images[i].type==type && images[i].identifier==identifier && images[i].id!=id){
+      if (Math.abs(obj.offsetLeft-images[i].offsetLeft)<obj.offsetWidth && Math.abs(obj.offsetTop-images[i].offsetTop)<obj.offsetHeight){
+        dontrecord2=true;
+        add(parseFloat(document.getElementById(obj.id+'num').innerHTML),images[i]);
+        remove(obj,true);
+        dontrecord2=false;
+        combined=true;
+      }
+    } //if type=type
+  } //for
+ } //numbered
+ if (!combined){
+  //var identifier=obj.identifier;
+  //var images=document.getElementsByTagName('img');
+  var arecards=false;
+  var dropdown=5;
+  var dropright=5;
+
+  for (i=0;i<images.length;i++){
+    arecards=false;
+    dropdown=5;
+    if ( findIndex(cards2,identifier)!=-1 && findIndex(cards2,images[i].identifier)!=-1 && images[i].id!=id){
+      //alert('Its a card '+images[i].identifier+'  '+identifier+'  '+images[i].id+' in='+findIndex(cards2,identifier) );
+      arecards=true;
+      dropdown=28*scale;
+      dropright=0;
+      if (justtook){
+        dropdown=0;
+        dropright=110*scale;
+      }
+    }
+    if ( ((images[i].identifier==identifier || (images[i].identifier=='peep' && identifier=='guest')) && images[i].id!=id) || arecards ){
+      //alert('this obj='+obj.id+' Similiar found ='+getName(images[i])+' & '+images[i].id);
+      if (Math.abs(obj.offsetLeft-images[i].offsetLeft)<5 && Math.abs(obj.offsetTop-images[i].offsetTop)<5){
+        //alert('colide with '+images[i].id+' because '+(images[i].id==id));
+        obj.xpos=obj.xpos+dropright;
+        obj.style.left=obj.xpos;
+        obj.ypos=obj.ypos+dropdown;
+        obj.style.top=obj.ypos;
+        if (obj.numbered){
+          document.getElementById(obj.id+'num').style.left=document.getElementById(obj.id+'num').offsetLeft+5;
+          document.getElementById(obj.id+'num').style.top=document.getElementById(obj.id+'num').offsetTop+5;
+        }
+      }   
+    }
+  }
+ }
+ var fg=false
+ if (father=='board' && (identifier=='peep' || identifier=='guest') && !extra){
+   for (var i=1;i<images.length;i++){
+     if (images[i].type=='familygrowth' || images[i].type=='familygrowth2'){
+       var xdiff=obj.xpos-images[i].xpos;
+       var ydiff=obj.ypos-images[i].ypos;
+       if (xdiff>0 && xdiff<images[i].offsetWidth-obj.offsetWidth && ydiff>0 && ydiff<images[i].offsetHeight-obj.offsetHeight){
+         var index=layersindex[2]++;
+         moving.style.zIndex=index;         
+         moving=null;
+         if (confirm("Click OK to add a family member for family growth. \r\n Click Cancel if you don't want to take family growth.")){
+           split(obj);
+           fg=true;
+         }
+       }
+       
+     } //if type
+
+   } //for
+
+   if (currentplayer==mynumber && (obj.type==playercolors[mynumber] || (identifier=='guest')))
+   try{
+   var act=(getActionNumber(obj));
+   var aname="UnknownAction";
+   if (act>=0 && act<=9) aname=actionspaces[act];
+   else aname=actionspot;
+   if (expandsion==5){
+     if (act>=1 && act<=16) aname=actionspaces2[act];
+     else aname='NonActionSpace';
+   }
+   if (act==4 && expandsion>=1 && expandsion<=3) aname='Build Stables';
+   var text="Dragged new ";
+   if (obj!=window.opener.currentpeep) text="Moved old ";
+   if (fg) text="Dragged ";
+   if (aname!='NonActionSpace') aname="<span style='text-decoration:underline'>"+aname+'</span>';
+   var guy=identifier;
+   sendData('turnrecorder.php','record='+text+guy+' to '+aname+'&action=notbegin',false,-2,true);
+   }catch(err){};
+ }// if peep
+
+ return;
+}
+
+function peepManagement(dontremove,identifier){
+  try{window.opener.boardready}catch(err){return true}; //skip peep management if running board alone.
+    var number=currentplayer;
+    var images=window.opener.farms[number].document.getElementsByTagName('img');
+    var found=0;
+    var index=1;
+    var remove=true;
+    if (dontremove) remove=false;
+    while (found==0 && index<images.length){
+      if (images[index].identifier=='peep'){
+        found=1;
+        if (remove && identifier!='guest') window.opener.farms[number].remove(images[index]);
+      }
+      index++;
+    }
+    index=1;
+    while (found==0 && index<images.length){
+      if (images[index].identifier=='guest'){
+        found=2;
+        guesttype2=images[index].type;
+        if (remove) window.opener.farms[number].remove(images[index]);
+      }
+      index++;
+    }
+    return found;
+    //if (found) return true;
+    //else return false;
+}
+
+
+function countUp2(identifier,type,onboard){
+  var images;
+  if (onboard) {
+    try{images=window.opener.gameboard.document.getElementsByTagName('img');}
+    catch(err){return 0;};
+  }
+  else images=document.getElementsByTagName('img');
+  var count=0;
+  for (var i=1;i<images.length;i++){
+    if ((images[i].identifier==identifier || (identifier=='minor' && images[i].identifier.indexOf('minor')!=-1))  && (type=='' || images[i].type==type) ) {
+      if (!images[i].hidden){
+        if (!images[i].numbered) count++;
+        else count+=parseFloat(whichfarm.document.getElementById(images[i].id+'num').innerHTML);
+      }
+    }
+  }
+  return count;
+}
+
+function feed(obj,minus){
+  var ct=countUp2('peep','');
+  ct+=countUp2('peep',window.opener.playercolors[farmnumber],true);
+  //alert(window.opener.gameboard.peeps[farmnumber]+' '+farmnumber);
+  try{
+  if (ct<window.opener.gameboard.peeps[farmnumber]) {
+    if (confirm('Thats curious, last round you had '+window.opener.gameboard.peeps[farmnumber]+' farmers,\r\nand now you have '+ct+' farmers.\r\nDo you want to correct this first?\r\n(After popup closes, hit p-key).\r\nHit cancel for no and feed.')) return;
+  }
+  }catch(err){};
+  if (ct==0) ct=countUp2('guest','');
+  var mult=2;
+  if (window.opener.numberofplayers==1) mult=3;
+  ct*=mult;
+  if (minus) ct--;
+  if (minus && window.opener.numberofplayers==1) ct--;
+  var num=parseFloat( document.getElementById(obj.id+'num').innerHTML );
+  if (num<ct) {
+    alert('You will need '+ct+' food to feed.\r\nIf needed, hit (u) for beggar cards.');
+    return;
+  }
+  add((-1*ct),obj);
+}
+function autoPay2(){
+  autoPay(window,false);
+}
+
+function feed2(minus){
+  var obj=null;
+  var images=document.getElementsByTagName('img');
+  for (var i=1;i<images.length;i++) 
+    if (images[i].type=='food') obj=images[i];
+  if (obj==null) {
+    alert('You dont have any food.  Make some first.');
+    return;
+  }
+  feed(obj,minus);
+}
+
+function autoPay(win,dontshowmessage){
+  var f=countUp2('resource','food')+countUp2('resource3','food');
+  var w=countUp2('resource','wood')+countUp2('resource3','wood');
+  var c=countUp2('resource','clay')+countUp2('resource3','clay');
+  var r=countUp2('resource','reed')+countUp2('resource3','reed');
+  var s=countUp2('resource','stone')+countUp2('resource3','stone');
+  var fo=window.opener.resourcesowe[0]; if (fo<0) fo=0;
+  var wo=window.opener.resourcesowe[1]; if (wo<0) wo=0;
+  var co=window.opener.resourcesowe[2]; if (co<0) co=0;
+  var ro=window.opener.resourcesowe[3]; if (ro<0) ro=0;
+  //if (renned) ro++;
+  var so=window.opener.resourcesowe[4]; if (so<0) so=0;
+  if (!dontshowmessage)
+    if (!confirm('Click OK to deduct,\r\nFood = '+fo+'  Wood = '+wo+'  Clay = '+co+'\r\nReed = '+ro+' and  Stone = '+so+'\r\n(for '+window.opener.resourcesnames+')\r\nClick cancel to manually pay differently.')) return; 
+  if (fo>f || wo>w || co>c || ro>r || so>s){
+    alert('You dont have the neccessary stuff. \r\nFirst get it, then use auto pay.');
+    return false;
+  }
+  var images=win.document.getElementsByTagName('img');
+  var n,nr;
+  var removethese=new Array();
+  var rindex=0;
+  for (var i=1;i<images.length;i++){
+    //alert('testing '+images[i].id);
+    if (fo>0 && images[i].type=='food'){
+      n=getNum(images[i]);
+      if (n>fo) {
+        nr=-1*fo;
+        add(nr,images[i]);
+      }
+      else {
+        nr=-1*n;
+        removethese[rindex++]=images[i];
+      }
+
+      fo+=nr;
+    }
+    if (wo>0 && images[i].type=='wood' && (images[i].identifier=='resource' || images[i].identifier=='resource3')){
+      n=getNum(images[i]);
+      //alert('we found wood '+n);
+      if (n>wo) {
+        nr=-1*wo;
+        add(nr,images[i]);
+      }
+      else {
+        nr=-1*n;
+        removethese[rindex++]=images[i];
+      }
+
+      wo+=nr;
+    }
+    if (co>0 && images[i].type=='clay' && (images[i].identifier=='resource' || images[i].identifier=='resource3')){
+      n=getNum(images[i]);
+      if (n>co) {
+        nr=-1*co;
+        add(nr,images[i]);
+      }
+      else {
+        nr=-1*n;
+        removethese[rindex++]=images[i];
+      }
+
+      co+=nr;
+    }
+    if (ro>0 && images[i].type=='reed'){
+      n=getNum(images[i]);
+      if (n>ro) {
+        nr=-1*ro;
+        add(nr,images[i]);
+      }
+      else {
+        nr=-1*n;
+        removethese[rindex++]=images[i];
+      }
+
+      ro+=nr;
+    }
+    if (so>0 && images[i].type=='stone' && (images[i].identifier=='resource' || images[i].identifier=='resource3')){
+      n=getNum(images[i]);
+      if (n>so) {
+        nr=-1*so;
+        add(nr,images[i]);
+      }
+      else {
+        nr=-1*n;
+        removethese[rindex++]=images[i];
+      }
+
+      so+=nr;
+    }
+  } //for images
+  window.opener.resourcesnames='';
+  for (var i=0;i<removethese.length;i++) remove(removethese[i]);
+  //renned=false;  //think about this.
+  return true;
+}
+
+function cardsOk(){
+  var images=window.opener.myhand.document.getElementsByTagName('img');
+  var minor=0;
+  var occ=0;
+  for (var i=0;i<images.length;i++){
+    if (images[i].identifier.indexOf('minor')!=-1) minor++;
+    if (images[i].identifier=='occ') occ++;
+  }
+  //alert(minor+' '+occ);
+  if (minor<=7 && occ<=7) return true;
+  return false;
+}
+
+function addMoors(x){
+  var code=moors[x-1];
+  var pieces=code.split(",");
+  for (var i=0;i<13;i++) {
+    if (pieces[i]=='F') newImage('moor-forest'+(Math.floor(Math.random()*5)+1)+'-j',0,moorsx[i]*scale,moorsy[i]*scale);
+    else if (pieces[i]=='S') newImage('moor-swamp'+(Math.floor(Math.random()*5)+1)+'-j',0,moorsx[i]*scale,moorsy[i]*scale);
+  }
+}
+
+function checkSpecialAction(obj){
+  var act=-1;
+  var mypeep=obj;
+  var x=mypeep.offsetLeft/scale;
+  var y=mypeep.offsetTop/scale;
+  var images=document.getElementsByTagName('img');
+  var found=false;
+    for (var i=1;i<images.length;i++){
+      if (images[i].identifier=='occ' && images[i].type.indexOf('special')!=-1 ){
+        //alert('Card='+images[i].id);
+        var xdiff=mypeep.xpos-images[i].xpos;
+        var ydiff=mypeep.ypos-images[i].ypos;
+        if (xdiff>(-1*mypeep.offsetWidth/2) && xdiff<images[i].offsetWidth-mypeep.offsetWidth/2 && ydiff>(-1*mypeep.offsetHeight/2) && ydiff<images[i].offsetHeight-mypeep.offsetHeight/2){
+          //actionspot=images[i].type;
+          found=true;
+          //alert(actionspot);
+        }
+      } //if card
+    } //for images
+  try{
+  if (found && !selectspecial && window.opener.boardloaded && (madeboardstable || madeboardfence)) {
+    selectspecial=true;
+    //alert('Took Special Action');
+    var text="<span style='text-decoration:underline'>Special Action</span>";
+    sendData('turnrecorder.php','record='+text+'&action=notbegin',false,-2,true);
+  }
+  }catch(err){};
+  return;
+}
+
+function removeJ(){
+  var images=document.getElementsByTagName('img');
+  var removethese=new Array();
+  var rindex=0;
+  var sucess=false;
+  for (var i=1;i<images.length;i++){
+    //alert('testing '+images[i].id);
+    if (images[i].type=='marker' && images[i].identifier=='resource'){
+      var n=getNum(images[i]);
+      if (n>1) add(-1,images[i]);
+      else removethese[rindex++]=images[i];
+      sucess=true;
+    }
+  } //for images
+  for (var i=0;i<removethese.length;i++) remove(removethese[i]);
+  return sucess;
+}
+
+
+function newImage(name,number,x,y,transfer,applyscale,newfence){
+//name should be in format identifier-type-extletter
+//number>1 for quantity, 0 for non-numbered, -1 for nn and non-movable, -2 for movable invisible (toggle to see with q)
+//x,y is starting location
+
+  
+
+  var xx=x;
+  var yy=y;
+  if (x==-2){xx=0; yy=0;}
+  var parts=name.split('-');
+  var identifier=parts[0];
+  var type=parts[1];
+
+  try{if (father=='board' && identifier=='stable' && window.opener.boardloaded) madeboardstable=true;}catch(err){};
+  try{if (father=='board' && identifier=='horizontalfence' && window.opener.boardloaded) madeboardfence=true;}catch(err){};
+
+  try{
+    if (farmnumber==window.opener.mynumber){
+      if (father=='farm' && identifier=='livestock' && (type=='boar' || type=='cattle' || type=='sheep') && window.opener.animaltype=='animeeples')
+        identifier='livestock2';
+      if (father=='farm' && identifier=='livestock' && (type=='boar' || type=='cattle' || type=='sheep') && window.opener.animaltype=='alive')
+        identifier='livestock4';
+      if (father=='farm' && identifier=='livestock3' && window.opener.animaltype=='alive')
+        identifier='livestock5';
+      if (father=='farm' && identifier=='resource' && (type=='grain' || type=='vegtable' || type=='flower') && window.opener.croptype=='veggiemeeples')
+        identifier='resource2';  
+      if (father=='farm' && identifier=='resource' && (type=='wood' || type=='clay' || type=='stone' || type=='reed') && window.opener.resourcetype=='resourcemeeples')
+        identifier='resource3'; 
+    }
+  }catch(err){};
+
+ if (identifier=='livestock' && (type=='boar' || type=='cattle' || type=='sheep') && window.opener.gameboard.expandsion==5)
+   identifier='livestock2';
+
+
+  var ct=0;
+
+  if (father=='farm') setActionVariables(identifier,type);
+
+  if (identifier=='stable' && newfence==true){
+    if (father!='board') ct=countUp2('stable',''); 
+    if (ct>=4 && window.opener.gameboard.expandsion!=5) 
+      if (confirm('You cannot place more than 4 stables. \r\nHit ok to agree \r\nHit cancel to place anyway.')) return;
+  }
+  else if (newfence==true && (identifier=='verticalfence' || identifier=='horizontalfence')){
+    ct=0;
+    ct+=countUp2('verticalfence','');
+    ct+=countUp2('horizontalfence','');
+    if (ct>=15 && window.opener.gameboard.expandsion!=5) 
+      if (confirm('You cannot place more than 15 fences. \r\nHit ok to agree \r\nHit cancel to place anyway.')) return;
+  }
+ try{
+  if (farmnumber==window.opener.mynumber && window.opener.farmsloaded[farmnumber]==true && window.opener.gameboard.expandsion==5 && father=='farm' && (identifier=='verticalfence' || identifier=='horizontalfence'))
+    if (!removeJ())
+      if (confirm('You have no fences left. \r\nHit ok to agree \r\nHit cancel to place anyway.')) return;
+ }catch(err){}
+
+  try{ 
+  if (!ren && father=='farm' && farmnumber==window.opener.mynumber && window.opener.farmsloaded[farmnumber]==true){
+  if (identifier!='building'){
+   var indx=findIndex(paycards,type)+1;
+   if (indx!=0 && type!='field'){
+     for (var j=0;j<5;j++) window.opener.resourcesowe[j]+= parseFloat( paycards[indx].substring(j,j+1) );
+     if (window.opener.resourcesnames!='') window.opener.resourcesnames+=', ';
+     window.opener.resourcesnames+=paycards[indx-1];
+   }   
+   indx=findIndex(paycards2,type)+1;
+   if (indx!=0){
+     for (var j=0;j<5;j++) window.opener.resourcesowe[j]+= parseFloat( paycards2[indx].substring(j,j+1) );
+     if (window.opener.resourcesnames!='') window.opener.resourcesnames+=', ';
+     window.opener.resourcesnames+=paycards2[indx-1];
+   }   
+   indx=findIndex(paycards3,type)+1;
+   //alert('type='+type+' has index='+indx);
+   if (indx!=0){
+     for (var j=0;j<5;j++) window.opener.resourcesowe[j]+= parseFloat( paycards3[indx].substring(j,j+1) );
+     if (window.opener.resourcesnames!='') window.opener.resourcesnames+=', ';
+     window.opener.resourcesnames+=paycards3[indx-1];
+   }
+   indx=findIndex(paycards4,type)+1;
+   if (indx!=0){
+     for (var j=0;j<5;j++) window.opener.resourcesowe[j]+= parseFloat( paycards4[indx].substring(j,j+1) );
+     if (window.opener.resourcesnames!='') window.opener.resourcesnames+=', ';
+     window.opener.resourcesnames+=paycards4[indx-1];
+   }
+  }
+   indx=findIndex(paycards5,type)+1;
+   if (indx!=0 && (identifier=='fminor' || identifier=='mminor'  || identifier=='major')){
+     for (var j=0;j<5;j++) window.opener.resourcesowe[j]+= parseFloat( paycards5[indx].substring(j,j+1) );
+     if (window.opener.resourcesnames!='') window.opener.resourcesnames+=', ';
+     window.opener.resourcesnames+=paycards5[indx-1];
+   } 
+   indx=findIndex(paycards6,type)+1;
+   if (indx!=0 && identifier=='gminor'){
+     for (var j=0;j<5;j++) window.opener.resourcesowe[j]+= parseFloat( paycards6[indx].substring(j,j+1) );
+     if (window.opener.resourcesnames!='') window.opener.resourcesnames+=', ';
+     window.opener.resourcesnames+=paycards6[indx-1];
+   }  
+   indx=findIndex(paycards7,type)+1;
+   if (indx!=0 && identifier=='yminor'){
+     for (var j=0;j<5;j++) window.opener.resourcesowe[j]+= parseFloat( paycards7[indx].substring(j,j+1) );
+     if (window.opener.resourcesnames!='') window.opener.resourcesnames+=', ';
+     window.opener.resourcesnames+=paycards7[indx-1];
+   }  
+   indx=findIndex(paycards8,type)+1;
+   if (indx!=0 && identifier=='xminor'){
+     for (var j=0;j<5;j++) window.opener.resourcesowe[j]+= parseFloat( paycards8[indx].substring(j,j+1) );
+     if (window.opener.resourcesnames!='') window.opener.resourcesnames+=', ';
+     var indx2=paycards8[indx-1].indexOf('_');
+     window.opener.resourcesnames+=paycards8[indx-1].substring(0,indx2).toLowerCase();
+   }
+   indx=findIndex(paycards9,type)+1;
+   if (indx!=0 && identifier=='xminor'){
+     for (var j=0;j<5;j++) window.opener.resourcesowe[j]+= parseFloat( paycards9[indx].substring(j,j+1) );
+     if (window.opener.resourcesnames!='') window.opener.resourcesnames+=', ';
+     var indx2=paycards9[indx-1].indexOf('_');
+     window.opener.resourcesnames+=paycards9[indx-1].substring(0,indx2).toLowerCase();
+   } 
+
+   indx=findIndex(paycards10,type)+1;
+   if (indx!=0 && identifier=='building'){
+     for (var j=0;j<5;j++) window.opener.resourcesowe[j]+= parseFloat( paycards10[indx].substring(j,j+1) );
+     if (window.opener.resourcesnames!='') window.opener.resourcesnames+=', ';
+     var indx2=paycards10[indx-1].indexOf('_');
+     window.opener.resourcesnames+=paycards10[indx-1].substring(0,indx2).toLowerCase();
+   }   
+
+   if (identifier=='hut' && type=='wood') { 
+    window.opener.resourcesowe[1]+=5;
+    window.opener.resourcesowe[3]+=2;
+    if (window.opener.resourcesnames!='') window.opener.resourcesnames+=', ';
+    window.opener.resourcesnames+='woodhut';
+   }
+   else if (identifier=='hut' && type=='clay') { 
+    window.opener.resourcesowe[2]+=5;
+    window.opener.resourcesowe[3]+=2;
+    if (window.opener.resourcesnames!='') window.opener.resourcesnames+=', ';
+    window.opener.resourcesnames+='clayhut';
+   }
+   else if (identifier=='hut' && type=='stone') { 
+    window.opener.resourcesowe[4]+=5;
+    window.opener.resourcesowe[3]+=2;
+    if (window.opener.resourcesnames!='') window.opener.resourcesnames+=', ';
+    window.opener.resourcesnames+='stonehut';
+   }
+   else if (identifier=='stable') {
+     if (window.opener.gameboard.expandsion>=1 && window.opener.gameboard.expandsion<=3 && window.opener.gameboard.getActionNumber()==4) window.opener.resourcesowe[1]+=1;
+     else window.opener.resourcesowe[1]+=2;
+     if (window.opener.resourcesnames!='') window.opener.resourcesnames+=', ';
+     window.opener.resourcesnames+='stable';
+   }
+   else if (identifier=='verticalfence' || identifier=='horizontalfence') {
+     window.opener.resourcesowe[1]+=1;
+     if (window.opener.resourcesnames!='') window.opener.resourcesnames+=', ';
+     window.opener.resourcesnames+='fnc';
+   }
+  }
+  }catch(err){}; 
+
+  try{
+  var extrastr='';
+  if (number>0) extrastr=number+' of ';
+  if (!window.opener.gameboard.dontrecord && okToRecord())
+  if ((window.opener.boardloaded && father=='board' && currentplayer==mynumber) || (father=='farm' && farmnumber==window.opener.gameboard.currentplayer && window.opener.farmsloaded[farmnumber])){
+    //try{alert(window.opener.farmsloaded[farmnumber])}catch(err){};
+    if (identifier!='card')
+      window.opener.gameboard.sendData('turnrecorder.php','record=Added '+extrastr+type+' '+identifier+' on '+father+'&action=notbegin',false,-2,true);
+    else
+      window.opener.gameboard.sendData('turnrecorder.php','record=NEW ROUND CARD is '+type.toUpperCase()+'&action=notbegin',false,-2,true);
+  }
+  if (!window.opener.gameboard.dontrecord && !dontrecord2 && father=='farm' && window.opener.farmsloaded[farmnumber] && farmnumber!=window.opener.gameboard.currentplayer && farmnumber==window.opener.gameboard.mynumber)
+    window.opener.gameboard.sendData('turnrecorder.php','record=('+window.opener.gameboard.playernames[window.farmnumber]+' Added '+extrastr+type+' '+identifier+' farm)&action=notbegin&outoforder=true',false,-2,true);
+  
+  }catch(err){};
+
+  var ext;
+  if (parts[2]=='g') ext='.gif';
+  else ext='.jpg';
+  if (identifier=='peep' && is_chrome) ext=ext+'?a='+Math.random();
+  if (identifier=='stable' && is_chrome) ext=ext+'?a='+Math.random();
+  if ( (identifier=='verticalfence' || identifier=='horizontalfence') && is_chrome) ext=ext+'?a='+Math.random();
+  var numbered=false;
+  if (number>0) numbered=true;
+  var movable=false;
+  justtook=false;
+  if (x==-2) { //cheep fix for drafted card.
+    x=0;
+    y=0;
+    justtook=true;
+  }
+
+  var indexW=findIndex(sizes,identifier)+1;
+  var indexH=findIndex(sizes2,identifier)+1;
+  var extraW=0;
+  var extraH=0;
+  if (indexW!=0) extraW=sizes[indexW]/2;
+  if (indexH!=0) extraH=sizes2[indexH]/2;
+
+  if (number>=0 || number==-2) movable=true;
+  try{
+    if (father=='farm' && window.opener.autoarrangecards && (identifier.indexOf('minor')!=-1 || identifier=='major')){
+      var temp=countUp2('minor','',false)+countUp2('major','',false);
+      var dropdown=0;
+      if (temp>=14) {temp-=14; dropdown=40;}
+      else if (temp>=7) {temp-=7; dropdown=20;}
+      x=(4+temp*70)*scale; xx=x;
+      y=(410+dropdown)*scale; yy=y;
+      applyscale=false; 
+    }
+    else if (father=='farm' && window.opener.autoarrangecards && (identifier=='occ')){
+      var temp=countUp2('occ','',false);
+      var dropdown=0;
+      if (temp>=14) {temp-=14; dropdown=70;}
+      else if (temp>=7) {temp-=7; dropdown=35;}
+      x=(555+dropdown)*scale; xx=x;
+      y=(5+temp*66)*scale; yy=y; 
+      applyscale=false;
+    } 
+  }catch(err){}
+
+  if (father=='board' && (x==-1 || y==-1) && identifier=='peep' && peepManagement(true)==2) {
+    identifier='guest'; 
+    type=guesttype2;
+  }
+
+  if (father=='farm' && (x==-1 || y==-1) && (identifier=='peep' || identifier=='guest')){
+    var temp=findEmptyHut();
+    x=temp[0];
+    y=temp[1];
+    if (type=='darkgreen' && (peeptype=='spinner' || peeptype=='meeples') ) y=y-25*scale;
+    xx=x; yy=y;
+  }
+  if (x==-1 || y==-1) findEdges();
+
+  if (x==-1){
+    var index=findIndex(placements,type)+1;
+    if (identifier=='hut') index=0;
+    if (index==0) index=findIndex(placements,identifier)+1;
+    if (index!=0 && father=='farm') xx=left+placements[index]*(startwidth*scale);
+    else xx=(right+left)/2-extraW;
+  }
+  if (y==-1){
+    var index=findIndex(vplacements,type)+1;
+    if (identifier=='hut') index=0;
+    if (index==0) index=findIndex(vplacements,identifier)+1;
+    if (index!=0 && father=='farm') yy=top2+vplacements[index]*(startheight*scale);
+    else yy=(bottom+top2)/2-extraH;
+  }
+
+  var expandit=0; //1 family version, 2 moor expand with family ver, 3 moor expand with normal, 5 ACBS
+  try{if (expandsion>0) expandit=expandsion;}catch(err){};
+
+  if (remindonharvest && father=='board' && expandit!=5) //when player places peep remind about harvest
+  if (roundnumber==5 || roundnumber==8 || roundnumber==10 || roundnumber==12 || roundnumber==14 || roundnumber==15)
+    if (identifier=='peep' && type==mycolor && currentplayer==mynumber)
+      if (window.opener.harvestremind[roundnumber]==true){
+        alert('Before dragging your peep into position, \r\nHARVEST, FEED, AND BREED.\r\nTo Feed: click your food and choose Feed on menu.\r\nHarvest and Breed: with menus on crops and animals.\r\n(or use [actions] & [act2] on board)');
+        window.opener.harvestremind[roundnumber]=false;
+      }
+
+ try{
+   if (!(father=='farm' && (identifier=='peep' || identifier=='guest')) && window.opener.boardloaded && window.opener.farmsloaded[0])
+   if (window.opener.document.getElementById('soundon2').checked==true){
+        window.opener.parent.frames['sound2'].go(identifier,type,0);
+   }
+ }catch(err){}
+
+ try{
+  if((identifier=='peep' || identifier=='guest') && father=='board' && window.opener.myhand.getdealt>7) {
+    if (!cardsOk()){
+      alert('You must remove cards, so you \r\nonly have 7 minors and 7 occs \r\nbefore placing your first peep.');
+      return false;
+    }
+    window.opener.myhand.getdealt=7;
+  }
+ }catch(err){};
+
+  try{
+  if (transfer!=1 && window.opener.gameboard.roundnumber<=14)
+    if (identifier=='peep' || identifier=='guest'){
+      if (father=='board' && document.getElementById('blockaction').checked && mynumber!=currentplayer){
+        alert("It's not your turn.  Wait until its your turn.");
+        return false;
+      }
+      else if (father=='board' && peepManagement(false,identifier)==0) {
+        if (confirm("You're out of peeps. \r\nClick OK to goto next player's turn\r\nOr hit CANCEL to place a peep anyway.")){
+          document.getElementById('donebutton').innerHTML='CONTINUE.';
+          try{
+            for (var i=0;i<5;i++) window.opener.resourcesowe[i]=0;
+            renned=false;
+            window.opener.resourcesnames='';
+            clearActionVariables();
+          }catch(err){};
+          buttonready=true;
+          done();
+          return false;
+        }
+      }
+    }
+  }catch(err){};
+
+  imagescount+=1;
+  var temp=document.createElement('img');
+
+  if ((identifier=='peep' || identifier=='guest') && father=='board' && usercreated && window.opener.gameboard.roundnumber<=14){ //only check usercreated after father==board
+    try{if (document.getElementById('donebutton').innerHTML=='BEGIN TURN') recordStart(2);}catch(err){};
+    document.getElementById('donebutton').innerHTML='END TURN';
+    try{if (type==playercolors[mynumber]) window.opener.placedpeep++;}catch(err){};
+    for (var i=0;i<5;i++) window.opener.resourcesowe[i]=0;
+    renned=false;
+    clearActionVariables();
+    window.opener.resourcesnames='';
+    try{window.opener.currentpeep=temp}catch(err){};
+  }
+
+  var ratio=1;
+  if (applyscale) ratio=scale;
+
+  var index=findIndex(sizes,identifier)+1;
+  //if (index==0) alert("Can't find size width for "+identifier);
+
+  var index2=findIndex(sizes2,identifier)+1;
+  //if (index2==0) alert("Can't find size height for "+identifier);
+
+  var changesize=0;
+  var smileys='';
+  if (identifier=='free') {
+    var parts2=parts[2].split(':');
+    temp.src=type;
+    temp.style.position='absolute';
+//    temp.style.left=xx*ratio;
+    temp.xpos=xx*ratio;
+//    temp.style.top=yy*ratio;
+    temp.ypos=yy*ratio; 
+    temp.style.width=parseFloat(parts2[0])*ratio;
+    temp.style.height=parseFloat(parts2[1])*ratio;
+    temp.id='free'+imagescount;  
+  }
+  else {
+    try{
+      if (identifier=='peep' && father=='farm' && peeptype=='smiley') smileys='2';
+      else if (identifier=='peep' && father=='farm' && peeptype=='spinner') {
+        smileys='6';
+        if (type=='darkgreen') changesize=1;
+      }
+      else if (identifier=='peep' && father=='farm' && peeptype=='pacman') {
+        smileys='10';
+      }
+      else if (identifier=='peep' && father=='farm' && peeptype=='meeples'){
+        var images=document.getElementsByTagName('img');
+        var ct=0;
+        for (var i=1;i<images.length;i++){
+          if (images[i].identifier=='peep')
+            ct++;
+        }
+        if (identifier=='peep') {
+          changesize=1;
+          if (ct==0) smileys='3';
+          else if (ct==1) smileys='4';
+          else if (ct>=2) smileys='5';
+        }
+      }
+      //if (identifier=='peep' && father=='farm') smileys='6';
+    }catch(err){}
+    try{
+      if (identifier=='peep' && father=='board'){
+        if (window.opener.myother>=1) putmeepsonboard=1;
+        var pindex=findIndex(playercolors,type);
+        if (putmeepsonboard==1 && window.opener.farms[pindex].peeptype=='smiley') smileys='2';
+        else if ( (type=='darkgreen' || type=='yellow' || putspinnersonboard==1) && putmeepsonboard==1 && window.opener.farms[pindex].peeptype=='spinner') {
+          smileys='6';
+          if (type=='darkgreen') changesize=1;
+        }
+        else if (putmeepsonboard==1 && window.opener.farms[pindex].peeptype=='pacman') smileys='10';
+        else if (putmeepsonboard==1 && window.opener.farms[pindex].peeptype=='meeples'){
+          var images=document.getElementsByTagName('img');
+          var ct=0;
+          changesize=1;
+          if (pindex==mynumber){
+            for (var i=1;i<images.length;i++){
+              if (images[i].identifier=='peep' && images[i].type==type)
+                ct++;
+            }
+
+            if (ct==0) smileys='3';
+            else if (ct==1) smileys='4';
+            else if (ct>=2) smileys='5';
+          }
+          else smileys='5';
+        }
+      } 
+    }catch(err){}
+    temp.src="../Images/"+identifier+type+smileys+ext;
+    if (identifier=='xminor' || type.substring(0,1)=='x') temp.src="../Cards/Cards/"+identifier+type+smileys+ext;
+    temp.style.position='absolute';
+//    temp.style.left=xx*ratio;
+    temp.xpos=xx*ratio;
+//    temp.style.top=yy*ratio;
+    temp.ypos=yy*ratio;
+
+    var enlarge=1;
+    if (father=='board' && identifier=='building') enlarge=2;
+
+    if (changesize==1) temp.style.width=50*scale;
+    else temp.style.width=sizes[index]*scale*enlarge; //this throws error!
+    if (changesize==1) temp.style.height=78*scale;
+    else temp.style.height=sizes2[index2]*scale*enlarge;
+    temp.id=type+imagescount;
+  }
+
+  temp.style.top=temp.ypos;
+  temp.style.left=temp.xpos;
+
+  var np=2;
+  try {np=window.opener.numberofplayers;}catch(err){};
+  var menunumber=0;
+  if (window.father=='board') {
+    menunumber=boardmenus[findIndex(boardmenus,identifier)+1];
+    if (identifier=='occ' && (type.substring(0,1)=='a' || type.substring(0,1)=='g' || type.substring(0,2)=='c1' || type.substring(0,2)=='c3' || type.substring(0,2)=='c4')) menunumber=30;
+    if (window.opener.gameboard.numberofplayers==1 && type.indexOf('special')!=-1) menunumber=40;
+    else if (type.indexOf('special')!=-1) menunumber=41;
+  }
+  else if (window.father=='farm') {
+    if (type=='grain' || type=='vegtable') menunumber=12;
+    else if (type=='flower') menunumber=48;
+    else if (type=='sheep' || type=='boar' || type=='cattle' || (type=='horse' && identifier.indexOf('minor')==-1)) menunumber=13;
+    else if (type=='food' && np>1) menunumber=14;
+    else if (type=='food' && np==1) menunumber=15;
+    else if ((identifier=='resource' || identifier=='resource3') && (type=='wood' || type=='clay' || type=='reed' || type=='stone')) menunumber=16;
+    else menunumber=farmmenus[findIndex(farmmenus,identifier)+1];
+    if (identifier=='occ' && (type.substring(0,1)=='a' || type.substring(0,1)=='g' || type.substring(0,1)=='x' || type.substring(0,2)=='c1' || type.substring(0,2)=='c3' || type.substring(0,2)=='c4')) menunumber=31;
+    if (menunumber==42 && type.indexOf('forest')!=-1) menunumber=43;
+    if (type=='k4veterinarian' || type=='k4perpetualstudent') menunumber=46;
+    if (type=='i1chamberlain' || type=='WoodenShoes_1175_3') menunumber=50;
+  }
+  else if (window.father=='hand') {
+    if (type=='g1professor' || type.indexOf('x1Professor')!=-1) menunumber=47;
+    else if (identifier=='occ' && (type.substring(0,1)=='a' || type.substring(0,1)=='g' || type.substring(0,1)=='x' || type.substring(0,2)=='c1' || type.substring(0,2)=='c3' || type.substring(0,2)=='c4')) menunumber=32;
+    else if (identifier=='aminor' || identifier=='gminor' || identifier=='cminor' || identifier=='xminor') menunumber=32;
+    else if (type=='broom') menunumber=44;
+    else if (type=='k4veterinarian' || type=='k4perpetualstudent') menunumber=45;
+    else menunumber=9;
+    //alert (type+'-'+menunumber);
+  }
+  else if (window.father=='draft') {
+    menunumber=34;
+  }
+  else if (window.father=='dhand') {
+    if (justtook) menunumber=36;
+    else menunumber=35;
+  }
+  else if (window.father=='none') {
+    if (identifier=='occ' && (type.substring(0,1)=='a' || type.substring(0,1)=='g' || type.substring(0,1)=='x' || type.substring(0,2)=='c1' || type.substring(0,2)=='c3' || type.substring(0,2)=='c4')) menunumber=33;
+    else if (identifier=='aminor' || identifier=='gminor' || identifier=='cminor' || identifier=='xminor') menunumber=33;
+    else menunumber=28;
+  }
+
+  if (menunumber==9 || menunumber==28 || menunumber==32 || menunumber==33 || menunumber==34 || menunumber==35 || menunumber==36 || menunumber==44 || menunumber==45 || menunumber==47){ //minor and occ cards need a new placement for their dropdown menus.
+      try {if (getdealt>7) {
+        menus[9][4]='<a href="javascript:remove2(whichimage)">Remove</a>';
+        menus[32][4]='<a href="javascript:remove2(whichimage)">Remove</a>';}
+      }
+      catch(err){};
+      temp.onmouseout=delayhidemenu;  
+      temp.onclick=function(event){
+        if (!event) event=window.event;
+        return dropdownmenu(this, event, menus[menunumber], '75px',1);
+      }
+  }
+  else if (menunumber!=0){
+      temp.onmouseout=delayhidemenu;  
+      temp.onclick=function(event){
+        if (!event) event=window.event;
+        return dropdownmenu(this, event, menus[menunumber], '75px');
+      }
+  }
+
+
+  if (father=='farm' && (findIndex(cards2,identifier)!=-1 || identifier=='building')){
+    temp.onmouseover=function(){
+      try{
+      var thediv=document.getElementById('cardname');
+      thediv.innerHTML=identifier+' '+type;
+      thediv.style.display='block';
+      //thediv.style.left=this.offsetLeft+this.offsetWidth-thediv.offsetWidth;
+      //thediv.style.top=this.offsetTop-15;
+      }catch(err){};
+    }
+    temp.onmouseout=function(){
+      try{
+      var thediv=document.getElementById('cardname');
+      thediv.style.display='none';
+      }catch(err){};
+      delayhidemenu;
+    }
+  }
+
+
+  temp.hidden=false;
+  if (number==-2) {
+    temp.style.visibility='hidden';
+    temp.hidden=true;
+    //alert('We have hidden '+identifier+type+' on '+father);
+  }
+
+  document.body.appendChild(temp);
+
+  if (movable) { //change location of drop down menu
+    if (identifier.indexOf('minor')!=-1 || identifier=='occ' || identifier=='major' || identifier=='occhzt') makeDraggable(temp,1)
+    else makeDraggable(temp);
+    temp.movable=true;
+  }
+  temp.type=type;
+  temp.identifier=identifier;
+  temp.numbered=numbered;
+  temp.grow=false;
+  if (identifier=='card' && parts.length>3){
+    temp.grow=true;
+    temp.growidentifier=parts[3];
+    temp.resource=type.substring( type.indexOf('e')+1 );
+    temp.growby=parseFloat(parts[4]);  
+  }
+  var index=5;
+  if (identifier=='resource' || identifier=='resource2' || identifier=='resource3' ||identifier=='livestock' || identifier=='livestock3' || identifier=='livestock2' || identifier=='livestock4'  || identifier=='livestock5' ||identifier=='peep' || identifier=='guest') index=10;
+  
+  for (var i=0;i<4;i++)
+    if (findIndex(layers[i],identifier)!=-1) index=layersindex[i];
+  
+  temp.style.zIndex=index;
+  lastimage=temp;
+
+  if (numbered){
+    var temp2=document.createElement('div');
+    temp2.innerHTML=number;
+    temp2.style.position='absolute';
+//    temp2.style.left=xx*ratio+temp.offsetWidth*1.0;
+    temp2.xpos=xx*ratio+temp.offsetWidth*1.0;
+//    temp2.style.top=yy*ratio;
+    temp2.ypos=yy*ratio;
+    temp2.style.left=temp2.xpos;
+    temp2.style.top=temp2.ypos;
+    temp2.style.fontWeight='bold';
+    temp2.style.fontFamily='Arial';
+    temp2.style.backgroundColor='white';
+
+    temp2.id=type+imagescount+'num';
+    document.body.appendChild(temp2);
+    temp2.style.zIndex=index;
+  }
+  var extra=false;
+  if (father=='board' && (identifier=='peep' || identifier=='guest')) {
+    extra=true;
+    //alert('peep');
+  }
+  imageMoved(temp,extra);
+
+  return true;
+}
+
+function clearActionVariables(){
+ try{
+  window.opener.placedroom=false;
+  window.opener.placedgrain=false;
+  window.opener.placedfield=false;
+  window.opener.placedocc=false;
+  window.opener.placedfood=false;
+  window.opener.occpay=false;
+ }catch(err){};
+}
+
+function setActionVariables(i,t){
+ try{
+  if (i=='hut') window.opener.placedroom=true;
+  if (i=='stable') window.opener.placedroom=true;
+  if (t=='grain') window.opener.placedgrain=true;
+  if (i=='field' && t=='field') window.opener.placedfield=true;
+  if (i=='occ') window.opener.placedocc=true;
+  if (t=='food') window.opener.placedfood=true;
+ }catch(err){};
+}

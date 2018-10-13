@@ -8,11 +8,15 @@ var _log hlf.Logger = hlf.MakeLogger("SGS")
 var _srv *sessionServer
 
 //Run turn on the sgs servers
-func Run(abf AppBuildFunc) error {
+func Run(abf AppBuildFunc, confPath string) error {
 
 	_log.Inf("Starting SGS...")
 
-	c := loadConf("./sgs.conf")
+	if len(confPath) >= 1 && confPath[len(confPath)-1] != '/' && confPath[len(confPath)-1] != '\\' {
+		confPath += "/"
+	}
+
+	c := loadConf(confPath + "sgs.conf")
 
 	var e error
 	_srv, e = makeSSrv(SSrvParam{
