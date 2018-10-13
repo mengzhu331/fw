@@ -246,7 +246,7 @@ __quit:
 func makeresLogger() *resLogger {
 	return &resLogger{
 		initT: time.Now(),
-		mch:   make(chan string),
+		mch:   make(chan string, 100),
 		ch:    make(chan Command, 100),
 		cl:    make(commandLog, 0),
 	}

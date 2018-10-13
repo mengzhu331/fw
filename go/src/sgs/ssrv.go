@@ -130,7 +130,7 @@ func (me *sessionServer) joinSessionQueue(username string, clientID int, conn Ne
 		username: username,
 		s:        nil,
 		conn:     conn,
-		mch:      make(chan Command),
+		mch:      make(chan Command, 100),
 	}
 
 	if len(me.currentSession.clients) == me.param.DefaultClients {

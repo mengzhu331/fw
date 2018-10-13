@@ -86,7 +86,7 @@ func (me *session) run(abf AppBuildFunc, profile string) *er.Err {
 
 	me.lg.Inf("Starting session %v", me.id)
 
-	me.cch = make(chan Command)
+	me.cch = make(chan Command, 100)
 
 	clients := make([]int, 0)
 	for _, c := range me.clients {
