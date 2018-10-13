@@ -5,3 +5,5 @@ golang.org/
 fw.code-workspace
 .vscode/launch.json
 go/src/fwb/debug
+out/linecounter.json
+out/linecounter.txt
