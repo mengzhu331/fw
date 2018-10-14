@@ -13,7 +13,7 @@ type prtData struct {
 
 func prtInit(me *gameImp) *er.Err {
 	pd := &prtData{
-		hotIndex: 0,
+		hotIndex: len(me.app.GetPlayers()) - 1,
 		timer:    -1,
 	}
 
@@ -22,16 +22,35 @@ func prtInit(me *gameImp) *er.Err {
 	return nextTurn(me)
 }
 
-func switchHotIndex(me *gameImp) {
+func findNextPlayer(me *gameImp) int {
 	pd := me.pd.(*prtData)
-	pd.hotIndex++
-	if pd.hotIndex >= len(me.app.GetPlayers()) {
-		pd.hotIndex = 0
+	pn := len(me.app.GetPlayers())
+	pd.hotIndex = (pd.hotIndex + 1) % pn
+
+	pid := me.turnOrder[pd.hotIndex]
+	pindex := me.gd.GetPDIndex(pid)
+
+	trivialHotIndex := pd.hotIndex
+
+	for me.gd.PData[pindex][fwb.PD_PAWNS] <= 0 {
+		pd.hotIndex = (pd.hotIndex + 1) % pn
+		if pd.hotIndex == trivialHotIndex {
+			return -1
+		}
+
+		pid = me.turnOrder[pd.hotIndex]
+		pindex = me.gd.GetPDIndex(pid)
 	}
+	return pd.hotIndex
 }
 
 func nextTurn(me *gameImp) *er.Err {
 	pd := me.pd.(*prtData)
+
+	nextpi := findNextPlayer(me)
+	if nextpi < 0 {
+		return me.gotoPhase(_P_ROUNDS_SETTLEMENT)
+	}
 
 	me.unsetTimer(pd.timer)
 	pd.timer = me.setTimer(30000, prtOnTimeOut)
@@ -89,6 +108,5 @@ func prtOnAction(me *gameImp, command sgs.Command) (bool, *er.Err) {
 		Payload: me.gd,
 	}))
 
-	switchHotIndex(me)
 	return true, err.Push(nextTurn(me))
 }

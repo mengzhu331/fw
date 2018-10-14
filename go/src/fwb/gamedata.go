@@ -41,6 +41,9 @@ const (
 	//PD_HOUSE_LV index in PlayerData for the level of the player house
 	PD_HOUSE_LV
 
+	//PD_MAX_PAWNS index in PlayerData for the max pawns
+	PD_MAX_PAWNS
+
 	//PD_PAWNS index in PlayerData for the pawns left
 	PD_PAWNS
 
@@ -53,12 +56,14 @@ type PlayerData []int
 
 //GameData is the data object for exchanging runtime game information between systems and modules
 type GameData struct {
-	Round int
-	Cards []Card
-	PData []PlayerData
+	Round     int
+	MaxPawn   int
+	MinRounds int
+	Cards     []Card
+	PData     []PlayerData
 }
 
-func (me *PlayerData) init(clientID int) {
+func (me *PlayerData) init(clientID int, maxPawn int) {
 	(*me)[PD_CLIENT_ID] = clientID
 	(*me)[PD_PT_HEART] = 0
 	(*me)[PD_PT_GOLD] = 30
@@ -73,26 +78,21 @@ func (me *PlayerData) init(clientID int) {
 	(*me)[PD_SK_INTELLIGENCE] = 0
 
 	(*me)[PD_HOUSE_LV] = 0
+
+	(*me)[PD_MAX_PAWNS] = maxPawn
+	(*me)[PD_PAWNS] = maxPawn
 }
 
 //Init create players data and set all values of game data to default
-func (me *GameData) Init(players []PlayerAgent) {
-	me.Round = -1
+func (me *GameData) Init(players []PlayerAgent, maxPawn int, minRounds int) {
+	me.Round = 0
+	me.MaxPawn = maxPawn
+	me.MinRounds = minRounds
 	me.Cards = nil
 	me.PData = make([]PlayerData, len(players))
 	for i := range me.PData {
-		me.PData[i].init(players[i].ID())
+		me.PData[i].init(players[i].ID(), maxPawn)
 	}
-}
-
-//FindCard find the card with the specified ID and empty slots no less than minSlot
-func (me *GameData) FindCard(cardID int, minSlot int) *Card {
-	for i := range me.Cards {
-		if me.Cards[i].ID == cardID && me.Cards[i].MaxSlot-len(me.Cards[i].Pawns) >= minSlot {
-			return &me.Cards[i]
-		}
-	}
-	return nil
 }
 
 //PDAdd sum up fields of twp player data object

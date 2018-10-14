@@ -12,6 +12,7 @@ type FwApp interface {
 	GetPlayers() []PlayerAgent
 	SendAllPlayers(command sgs.Command) *er.Err
 	SendToPlayer(playerID int, command sgs.Command) *er.Err
+	SendToMockPlayer(playerID int, command sgs.Command)
 	SendToGame(command sgs.Command) *er.Err
 	SendToSession(command sgs.Command) *er.Err
 	GetSession() sgs.Session
@@ -44,7 +45,7 @@ type Card struct {
 //to a card set making algorithm
 type CardManager interface {
 	LoadCards(conf string) *er.Err
-	MakeCardSet() ([]Card, []Card)
+	MakeCardSet() ([]Card, []Card, []Card)
 }
 
 //Action player Action abstract interface

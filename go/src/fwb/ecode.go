@@ -37,4 +37,7 @@ const (
 
 	//E_DOACTION_INVALID_CLIENTID when do action the specified player ID is illegal
 	E_DOACTION_INVALID_CLIENTID = _E_FWB | er.IMPT_DEGRADE | er.ET_INTERNAL | er.EI_ILLEGAL_PARAMETER | 0x11
+
+	//E_CMD_INVALID_PAYLOAD command received encloses an invalid payload
+	E_CMD_INVALID_PAYLOAD = _E_FWB | er.IMPT_THREAT | er.ET_INTERACTION | er.EI_ILLEGAL_PARAMETER | 0x12
 )

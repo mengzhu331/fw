@@ -31,6 +31,18 @@ const (
 
 	//CMD_ACTION_COMMITTED command for notifying players that the action has been committed
 	CMD_ACTION_COMMITTED
+
+	//CMD_ROUND_SETTLEMENT command for notifying players to make settlement
+	CMD_ROUND_SETTLEMENT
+
+	//CMD_ROUND_SETTLEMENT_INVALID command for notifying a player that the data with the requested settlement is invalid
+	CMD_ROUND_SETTLEMENT_INVALID
+
+	//CMD_ROUND_SETTLEMENT_UPDATE command for notifying players that the settlement has updated the game data
+	CMD_ROUND_SETTLEMENT_UPDATE
+
+	//CMD_GAME_FINISH command for notifying players that game has finished with player rank ready
+	CMD_GAME_FINISH
 )
 
 const (
@@ -42,6 +54,12 @@ const (
 
 	//CMD_ACTION command for requesting an action
 	CMD_ACTION
+
+	//CMD_COMMIT_ROUND_SETTLEMENT command for commiting round settlement
+	CMD_COMMIT_ROUND_SETTLEMENT
+
+	//CMD_REMATCH command for requesting next match with the same players
+	CMD_REMATCH
 )
 
 const (

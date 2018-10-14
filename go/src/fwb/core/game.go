@@ -8,12 +8,18 @@ import (
 	"hlf"
 	"sgs"
 	"strconv"
+	"sutil"
 )
 
 type timer struct {
 	intervalMS int
 	elapsedMS  int
-	dce        dynamicCmdExe
+	te         timerExe
+}
+
+type gameConf struct {
+	MaxPawn   int
+	MinRounds int
 }
 
 type gameImp struct {
@@ -22,9 +28,10 @@ type gameImp struct {
 	cm      fwb.CardManager
 	ap      *actn.ActionParser
 	profile string
+	conf    gameConf
 
 	//phase data
-	dynamicCmdMap map[int]dynamicCmdExe
+	dynamicCmdMap map[int]cmdExe
 	timers        []*timer
 	pd            interface{}
 	phs           phase
@@ -36,7 +43,7 @@ type gameImp struct {
 
 type cmdExe func(*gameImp, sgs.Command) *er.Err
 
-type dynamicCmdExe func(*gameImp, sgs.Command) (bool, *er.Err)
+type timerExe func(*gameImp, sgs.Command) (bool, *er.Err)
 
 type enterPhase func(*gameImp) *er.Err
 
@@ -62,8 +69,6 @@ func makeGame(app fwb.FwApp, profile string) (*gameImp, *er.Err) {
 
 	game.app = app
 
-	game.gd.Init(app.GetPlayers())
-
 	game.lg = app.GetLogger()
 
 	game.ap = actn.MakeActionParser(&game)
@@ -80,6 +85,15 @@ func makeGame(app fwb.FwApp, profile string) (*gameImp, *er.Err) {
 	}
 
 	game.cm = cards.MakeCardManager(&game)
+
+	cfile := "./" + profile + "/game.conf"
+	err := sutil.LoadConfFile(cfile, &game.conf)
+	if err != nil {
+		return nil, er.Throw(fwb.E_MISSING_GAME_SETTINGS, er.EInfo{
+			"details": "failed to load settings",
+			"file":    cfile,
+		})
+	}
 
 	e := game.cm.LoadCards(profile)
 
@@ -124,11 +138,7 @@ func (me *gameImp) SendCommand(command sgs.Command) *er.Err {
 	var err *er.Err
 
 	if founddce {
-		var c bool
-		c, err = dce(me, command)
-		if !c {
-			me.unsetDCE(command.ID)
-		}
+		err = dce(me, command)
 		if err.Importance() >= er.IMPT_DEGRADE {
 			return err
 		}
@@ -155,7 +165,7 @@ func (me *gameImp) SendCommand(command sgs.Command) *er.Err {
 }
 
 func (me *gameImp) gotoPhase(p phase) *er.Err {
-	me.dynamicCmdMap = make(map[int]dynamicCmdExe)
+	me.dynamicCmdMap = make(map[int]cmdExe)
 	me.timers = make([]*timer, 0)
 	me.phs = p
 	exec, found := _phaseEnterMap[p]
@@ -179,7 +189,7 @@ func onTickDefault(me *gameImp, command sgs.Command) *er.Err {
 		if t != nil {
 			t.elapsedMS += deltaMS
 			if t.elapsedMS >= t.intervalMS {
-				c, e := t.dce(me, sgs.Command{
+				c, e := t.te(me, sgs.Command{
 					ID:      fwb.CMD_TIMER,
 					Source:  fwb.CMD_SOURCE_APP,
 					Payload: id,
@@ -198,7 +208,7 @@ func onTickDefault(me *gameImp, command sgs.Command) *er.Err {
 	return err
 }
 
-func (me *gameImp) setDCE(cmdId int, dce dynamicCmdExe) {
+func (me *gameImp) setDCE(cmdId int, dce cmdExe) {
 	me.dynamicCmdMap[cmdId] = dce
 }
 
@@ -206,10 +216,10 @@ func (me *gameImp) unsetDCE(cmdId int) {
 	delete(me.dynamicCmdMap, cmdId)
 }
 
-func (me *gameImp) setTimer(intervalMS int, dce dynamicCmdExe) int {
+func (me *gameImp) setTimer(intervalMS int, te timerExe) int {
 	t := timer{
 		intervalMS: intervalMS,
-		dce:        dce,
+		te:         te,
 	}
 
 	var i int

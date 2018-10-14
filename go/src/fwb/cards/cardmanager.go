@@ -88,7 +88,15 @@ func (me *cardManager) shuffle(cards []int, swaps int) []int {
 	return shuffled
 }
 
-func (me *cardManager) MakeCardSet() ([]fwb.Card, []fwb.Card) {
+func (me *cardManager) MakeCardSet() ([]fwb.Card, []fwb.Card, []fwb.Card) {
+	specialCards := make([]fwb.Card, 0)
+	specialCards = append(specialCards, fwb.Card{
+		ID:          CARD_VOID,
+		MaxSlot:     999,
+		Pawns:       make([]int, 0),
+		PawnPerTurn: 1,
+	})
+
 	if me.shuffledCardSet == nil || len(me.shuffledCardSet) < me.OptionalCardsPerRound {
 		me.shuffledCardSet = make([]int, len(me.OptionalCardSet))
 		me.shuffledCardSet = me.shuffle(me.shuffledCardSet, len(me.OptionalCardSet)*2)
@@ -108,7 +116,7 @@ func (me *cardManager) MakeCardSet() ([]fwb.Card, []fwb.Card) {
 
 	me.shuffledCardSet = me.shuffledCardSet[me.OptionalCardsPerRound:]
 
-	return basicCards, shuffledCards
+	return specialCards, basicCards, shuffledCards
 }
 
 func cardSetToString(me *[]int) string {

@@ -14,7 +14,7 @@ func FwAppBuildFunc() sgs.App {
 }
 
 var _execMap = map[int]func(*fwAppImp, sgs.Command) *er.Err{
-	sgs.CMD_TICK:           forwardToGame,
+	sgs.CMD_TICK:           onTick,
 	sgs.CMD_APP_RUN:        forwardToGame,
 	sgs.CMD_FORWARD_TO_APP: forwardToPlayer,
 }
@@ -22,6 +22,7 @@ var _execMap = map[int]func(*fwAppImp, sgs.Command) *er.Err{
 type fwAppImp struct {
 	g  fwb.Game
 	pm map[int]fwb.PlayerAgent
+	mp mockPlayers
 	s  sgs.Session
 	lg hlf.Logger
 }
@@ -37,8 +38,13 @@ func (me *fwAppImp) Init(s sgs.Session, clients []int, profile string) *er.Err {
 		me.pm[c] = makePlayer(me, c, me.s.GetClientName(c))
 	}
 
-	var err *er.Err
-	me.g, err = makeGame(me, profile)
+	game, err := makeGame(me, profile)
+	me.g = game
+
+	me.mp = mockPlayers{}
+
+	me.mp.init(game)
+
 	return err
 }
 
@@ -61,6 +67,15 @@ func (me *fwAppImp) SendCommand(command sgs.Command) *er.Err {
 
 func (me *fwAppImp) GetLogger() hlf.Logger {
 	return me.lg
+}
+
+func onTick(app *fwAppImp, command sgs.Command) *er.Err {
+	err := app.mp.execOne()
+	if err.Importance() >= er.IMPT_DEGRADE {
+		return err
+	}
+
+	return forwardToGame(app, command)
 }
 
 func forwardToGame(app *fwAppImp, command sgs.Command) *er.Err {
@@ -118,4 +133,7 @@ func (me *fwAppImp) GetPlayers() []fwb.PlayerAgent {
 		players = append(players, p)
 	}
 	return players
+}
+
+func (me *fwAppImp) SendToMockPlayer(playerID int, command sgs.Command) {
 }

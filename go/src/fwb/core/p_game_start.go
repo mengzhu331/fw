@@ -13,6 +13,8 @@ type pgsData struct {
 }
 
 func pgsInit(me *gameImp) *er.Err {
+	me.gd.Init(me.app.GetPlayers(), me.conf.MaxPawn, me.conf.MinRounds)
+
 	me.setDCE(fwb.CMD_GAME_START_ACK, pgsOnGameStartAck)
 	me.setTimer(10000, pgsOnTimeOut)
 	me.pd = &pgsData{
@@ -25,7 +27,7 @@ func pgsInit(me *gameImp) *er.Err {
 	})
 }
 
-func pgsOnGameStartAck(me *gameImp, command sgs.Command) (bool, *er.Err) {
+func pgsOnGameStartAck(me *gameImp, command sgs.Command) *er.Err {
 	pd := me.pd.(pgsData)
 	pd.pam[command.Source] = true
 	npa := 0
@@ -36,10 +38,10 @@ func pgsOnGameStartAck(me *gameImp, command sgs.Command) (bool, *er.Err) {
 
 	if npa == len(me.app.GetPlayers()) {
 		me.gotoPhase(_P_ROUNDS_START)
-		return false, nil
+		return nil
 	}
 
-	return true, nil
+	return nil
 }
 
 func pgsOnTimeOut(me *gameImp, command sgs.Command) (bool, *er.Err) {

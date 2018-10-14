@@ -1,8 +1,11 @@
 package cards
 
 const (
+	//CARD_VOID used for undefined card
+	CARD_VOID = iota
+
 	//CARD_FARM card to enable farm action
-	CARD_FARM = iota + 1
+	CARD_FARM
 
 	//CARD_FEED_SHEEP card to enable feed sheep action
 	CARD_FEED_SHEEP

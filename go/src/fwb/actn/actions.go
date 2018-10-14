@@ -11,8 +11,11 @@ import (
 
 const (
 
+	//ACTN_SKIP skip one turn
+	ACTN_SKIP = iota
+
 	//ACTN_FARM farm action
-	ACTN_FARM = iota + 1
+	ACTN_FARM
 
 	//ACTN_FEED_SHEEP feed sheep action
 	ACTN_FEED_SHEEP
@@ -64,7 +67,7 @@ const (
 )
 
 var _actionNames = []string{
-	"Unknown",
+	"Skip",
 	"Farm",
 	"FeedSheep",
 	"TakeOff",
@@ -86,7 +89,7 @@ var _actionNames = []string{
 type actnParser func(sgs.Command) fwb.Action
 
 var _actnParser = map[int]actnParser{
-
+	ACTN_SKIP:          actnSkipParser,
 	ACTN_FARM:          actnBasicParser,
 	ACTN_FEED_SHEEP:    actnBasicParser,
 	ACTN_TAKE_OFF:      actnBasicParser,
@@ -108,6 +111,7 @@ var _actnParser = map[int]actnParser{
 }
 
 var _actnPersons = map[int]int{
+	ACTN_SKIP:          1,
 	ACTN_FARM:          1,
 	ACTN_FEED_SHEEP:    1,
 	ACTN_TAKE_OFF:      1,
@@ -129,6 +133,7 @@ var _actnPersons = map[int]int{
 }
 
 var _actnCards = map[int]int{
+	ACTN_SKIP:          cards.CARD_VOID,
 	ACTN_FARM:          cards.CARD_FARM,
 	ACTN_FEED_SHEEP:    cards.CARD_FEED_SHEEP,
 	ACTN_TAKE_OFF:      cards.CARD_TAKE_OFF,
@@ -231,13 +236,26 @@ func getTargetCard(gd *fwb.GameData, actionID int) (*fwb.Card, *er.Err) {
 		})
 	}
 
-	card := gd.FindCard(cardID, minSlot)
+	card := FindCard(gd, cardID, minSlot)
 
 	return card, nil
 }
 
+//FindCard find the card with the specified ID and empty slots no less than minSlot
+func FindCard(me *fwb.GameData, cardID int, minSlot int) *fwb.Card {
+	for i := range me.Cards {
+		if me.Cards[i].ID == cardID && me.Cards[i].MaxSlot-len(me.Cards[i].Pawns) >= minSlot {
+			return &me.Cards[i]
+		}
+	}
+	return nil
+}
+
 func hasCardSlots(gd *fwb.GameData, actionID int) bool {
 	card, _ := getTargetCard(gd, actionID)
+	if card == nil {
+		return false
+	}
 	return card.MaxSlot-len(card.Pawns) >= card.PawnPerTurn
 }
 

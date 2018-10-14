@@ -11,6 +11,7 @@ type prsData struct {
 }
 
 func prsInit(me *gameImp) *er.Err {
+	me.gd.Round++
 	me.pd = &prsData{
 		pam: make(playerAckMap),
 	}
@@ -19,8 +20,8 @@ func prsInit(me *gameImp) *er.Err {
 	me.setTimer(10000, prsOnTimeOut)
 	setTurnOrder(me)
 
-	basicCards, shuffledCards := me.cm.MakeCardSet()
-	cards := append(basicCards, shuffledCards...)
+	specialCards, basicCards, shuffledCards := me.cm.MakeCardSet()
+	cards := append(append(specialCards, basicCards...), shuffledCards...)
 	return me.app.SendAllPlayers(sgs.Command{
 		ID:      fwb.CMD_ROUND_START,
 		Source:  fwb.CMD_SOURCE_APP,
@@ -52,7 +53,7 @@ func setTurnOrder(me *gameImp) {
 	me.turnOrder = append(me.turnOrder[minIdx:], me.turnOrder[:minIdx]...)
 }
 
-func prsOnRoundStartAck(me *gameImp, command sgs.Command) (bool, *er.Err) {
+func prsOnRoundStartAck(me *gameImp, command sgs.Command) *er.Err {
 	pd := me.pd.(*prsData)
 	pd.pam[command.Source] = true
 	npa := 0
@@ -63,10 +64,10 @@ func prsOnRoundStartAck(me *gameImp, command sgs.Command) (bool, *er.Err) {
 
 	if npa == len(me.app.GetPlayers()) {
 		me.gotoPhase(_P_ROUNDS_TURNS)
-		return false, nil
+		return nil
 	}
 
-	return true, nil
+	return nil
 }
 
 func prsOnTimeOut(me *gameImp, command sgs.Command) (bool, *er.Err) {
