@@ -97,7 +97,7 @@ func (me *fwAppImp) SendAllPlayers(command sgs.Command) *er.Err {
 	var err *er.Err
 
 	for _, p := range me.pm {
-		err = err.Push(p.SendCommand(command))
+		err = err.Push(me.SendToPlayer(p.ID(), command))
 		if err.Importance() >= er.IMPT_DEGRADE {
 			return err
 		}
@@ -115,7 +115,11 @@ func (me *fwAppImp) SendToPlayer(playerID int, command sgs.Command) *er.Err {
 		}).To(me.lg)
 	}
 
-	return player.SendCommand(command)
+	err := player.SendCommand(command)
+	if err.Importance() > er.IMPT_RECOVERABLE && err.Importance() < er.IMPT_DEGRADE {
+		me.SendToMockPlayer(playerID, command)
+	}
+	return err
 }
 
 func (me *fwAppImp) SendToGame(command sgs.Command) *er.Err {
