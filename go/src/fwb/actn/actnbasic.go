@@ -217,7 +217,7 @@ func (me *actnBasic) Do(gd *fwb.GameData) *er.Err {
 	res = fwb.PDAdd(res, gain)
 	gd.PData[i] = res
 
-	return checkCard(gd, me.actionID, me.playerID, cost[fwb.PD_PAWNS])
+	return checkCard(gd, me.actionID, me.playerID, -cost[fwb.PD_PAWNS])
 }
 
 func (me *actnBasic) ValidateAgainst(gd *fwb.GameData) bool {
