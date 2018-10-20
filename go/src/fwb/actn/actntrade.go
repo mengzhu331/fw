@@ -5,6 +5,7 @@ import (
 	"er"
 	"fmt"
 	"fwb"
+	"log"
 	"sgs"
 )
 
@@ -14,7 +15,8 @@ type actnTrade struct {
 	amount         []int
 }
 
-func prices() fwb.PlayerData {
+//PtPrices get the price for each property
+func PtPrices() fwb.PlayerData {
 	p := make(fwb.PlayerData, fwb.PD_MAX)
 	p[fwb.PD_PT_CEREALS] = 2
 	p[fwb.PD_PT_MEAT] = 5
@@ -46,7 +48,7 @@ func actnTradeParser(command sgs.Command) fwb.Action {
 	}
 
 	return &actnTrade{
-		playerID:       command.Source,
+		playerID:       command.Who,
 		tradeDirection: trade.Payload.Direction,
 		amount:         trade.Payload.Amount,
 	}
@@ -61,7 +63,7 @@ func (me *actnTrade) String() string {
 	} else {
 		direction = "UNDEFINED"
 	}
-	return fmt.Sprintf("[Action %v from Player %v, Direction %v, Amount %v]", _actionNames[ACTN_TRADE], me.playerID, direction, me.amount)
+	return fmt.Sprintf("[Action %v from Player %v, Direction %v, Amount %v]", ActionNames[ACTN_TRADE], me.playerID, direction, me.amount)
 }
 
 func (me *actnTrade) ID() int {
@@ -69,16 +71,16 @@ func (me *actnTrade) ID() int {
 }
 
 func (me *actnTrade) getCost() fwb.PlayerData {
-	cost := me.amount
-	p := prices()
+	cost := make(fwb.PlayerData, fwb.PD_MAX)
+	p := PtPrices()
 
 	if me.tradeDirection < 0 {
-		for i, v := range cost {
+		for i, v := range me.amount {
 			cost[i] = v * -1
 		}
 		cost[fwb.PD_PT_GOLD] -= 2
 	} else {
-		for i, v := range cost {
+		for i, v := range me.amount {
 			cost[fwb.PD_PT_GOLD] -= p[i] * v
 		}
 		cost[fwb.PD_PT_GOLD] -= 2
@@ -91,7 +93,7 @@ func (me *actnTrade) makeGain() fwb.PlayerData {
 
 	gain := make(fwb.PlayerData, fwb.PD_MAX)
 
-	p := prices()
+	p := PtPrices()
 
 	if me.tradeDirection < 0 {
 		for i, v := range me.amount {
@@ -111,7 +113,9 @@ func (me *actnTrade) ValidateAgainst(gd *fwb.GameData) bool {
 
 	pd := gd.PData[playeri]
 	cost := me.getCost()
-	return hasCardSlots(gd, ACTN_STEAL) && fwb.PDAdd(cost, pd).AllAboveZero()
+	log.Printf("trade cost %v", cost)
+	log.Printf("trade est %v", fwb.PDAdd(cost, pd))
+	return HasCardSlots(gd, ACTN_TRADE) && fwb.PDAdd(cost, pd).AllAboveZero()
 }
 
 func (me *actnTrade) Do(gd *fwb.GameData) *er.Err {
@@ -125,10 +129,10 @@ func (me *actnTrade) Do(gd *fwb.GameData) *er.Err {
 
 	cost := me.getCost()
 	gain := me.makeGain()
-	p := gd.PData[me.playerID]
+	p := gd.PData[i]
 	p = fwb.PDAdd(cost, p)
 	p = fwb.PDAdd(gain, p)
 
-	gd.PData[me.playerID] = p
+	gd.PData[i] = p
 	return checkCard(gd, ACTN_TRADE, me.playerID, 1)
 }

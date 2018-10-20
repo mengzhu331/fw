@@ -6,6 +6,7 @@ import (
 	"fwb"
 	"fwb/cards"
 	"hlf"
+	"log"
 	"sgs"
 )
 
@@ -66,7 +67,7 @@ const (
 	ACTN_MAX
 )
 
-var _actionNames = []string{
+var ActionNames = []string{
 	"Skip",
 	"Farm",
 	"FeedSheep",
@@ -251,11 +252,13 @@ func FindCard(me *fwb.GameData, cardID int, minSlot int) *fwb.Card {
 	return nil
 }
 
-func hasCardSlots(gd *fwb.GameData, actionID int) bool {
+//HasCardSlots check if there is a card with sufficient slots for the action
+func HasCardSlots(gd *fwb.GameData, actionID int) bool {
 	card, _ := getTargetCard(gd, actionID)
 	if card == nil {
 		return false
 	}
+	log.Printf("Card %v slot %v pawns %v", card.ID, card.MaxSlot-len(card.Pawns), card.Pawns)
 	return card.MaxSlot-len(card.Pawns) >= card.PawnPerTurn
 }
 

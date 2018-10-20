@@ -19,6 +19,7 @@ type conf struct {
 	WSWriteBuff int
 	BaseTickMs  int
 	AuthSrvURI  string
+	TestEnabled bool
 	App         appConf
 }
 

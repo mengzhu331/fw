@@ -16,7 +16,8 @@ type actnBasic struct {
 }
 
 func (me *actnBasic) getCost(player fwb.PlayerData) fwb.PlayerData {
-	cost := fwb.PlayerData{}
+	cost := make(fwb.PlayerData, fwb.PD_MAX)
+
 	cost[fwb.PD_PAWNS] = -1
 
 	switch me.actionID {
@@ -64,11 +65,15 @@ func (me *actnBasic) checkRequirement(player fwb.PlayerData) bool {
 		fulfill = know >= 1 && stre >= 1
 	}
 
+	if !fulfill {
+		return false
+	}
+
 	return fulfill
 }
 
 func (me *actnBasic) makeGain(player fwb.PlayerData) fwb.PlayerData {
-	gain := fwb.PlayerData{}
+	gain := make(fwb.PlayerData, fwb.PD_MAX)
 
 	inte := player[fwb.PD_SK_INTELLIGENCE]
 	know := player[fwb.PD_SK_KNOWLEDGE]
@@ -181,13 +186,13 @@ func actnBasicParser(command sgs.Command) fwb.Action {
 	}
 
 	return &actnBasic{
-		playerID: command.Source,
+		playerID: command.Who,
 		actionID: actnCmd.ActionID,
 	}
 }
 
 func (me *actnBasic) String() string {
-	return fmt.Sprintf("[Action: %v from Player: %v]", _actionNames[me.actionID], me.playerID)
+	return fmt.Sprintf("[Action: %v from Player: %v]", ActionNames[me.actionID], me.playerID)
 }
 
 func (me *actnBasic) ID() int {
@@ -209,14 +214,14 @@ func (me *actnBasic) Do(gd *fwb.GameData) *er.Err {
 	gain := me.makeGain(p)
 
 	res := fwb.PDAdd(p, cost)
-	res = fwb.PDAdd(p, gain)
+	res = fwb.PDAdd(res, gain)
 	gd.PData[i] = res
 
 	return checkCard(gd, me.actionID, me.playerID, cost[fwb.PD_PAWNS])
 }
 
 func (me *actnBasic) ValidateAgainst(gd *fwb.GameData) bool {
-	if !hasCardSlots(gd, me.actionID) {
+	if !HasCardSlots(gd, me.actionID) {
 		return false
 	}
 

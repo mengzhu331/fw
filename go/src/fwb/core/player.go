@@ -25,18 +25,7 @@ func (me *playerImp) Name() string {
 
 func (me *playerImp) SendCommand(command sgs.Command) *er.Err {
 	if command.InCategory(sgs.CMD_C_APP_TO_CLIENT) {
-		pld, e := json.Marshal(command.Payload)
-		if e != nil {
-			return er.Throw(fwb.E_CMD_PAYLOAD_NOT_ENCODABLE, er.EInfo{
-				"details": "payload with command sent to client is not able to be encoded to json",
-				"payload": command.Payload,
-			}).To(me.lg)
-		}
-
-		return me.app.GetSession().ForwardToClient(me.id, sgs.Command{
-			ID:      sgs.CMD_FORWARD_TO_CLIENT,
-			Payload: pld,
-		})
+		return me.app.GetSession().ForwardToClient(me.id, command)
 	}
 
 	if command.ID == sgs.CMD_FORWARD_TO_APP {
@@ -70,6 +59,8 @@ func (me *playerImp) SendCommand(command sgs.Command) *er.Err {
 
 //makePlayer Init a new player
 func makePlayer(app fwb.FwApp, id int, name string) fwb.PlayerAgent {
+	app.GetLogger().Dbg("Make player: client ID 0x%x, name %v", id, name)
+
 	player := playerImp{}
 	player.app = app
 	player.id = id

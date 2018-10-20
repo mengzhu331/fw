@@ -32,13 +32,13 @@ func actnStealParser(command sgs.Command) fwb.Action {
 	}
 
 	return &actnSteal{
-		playerID:     command.Source,
+		playerID:     command.Who,
 		targetPlayer: steal.Payload,
 	}
 }
 
 func (me *actnSteal) String() string {
-	return fmt.Sprintf("[Action %v from Player %v, Target Player %v]", _actionNames[ACTN_STEAL], me.playerID, me.targetPlayer)
+	return fmt.Sprintf("[Action %v from Player %v, Target Player %v]", ActionNames[ACTN_STEAL], me.playerID, me.targetPlayer)
 }
 
 func (me *actnSteal) ID() int {
@@ -54,7 +54,7 @@ func (me *actnSteal) ValidateAgainst(gd *fwb.GameData) bool {
 	playerInte := gd.PData[playeri][fwb.PD_SK_INTELLIGENCE]
 	targetKnow := gd.PData[me.targetPlayer][fwb.PD_SK_KNOWLEDGE]
 	playerPawns := gd.PData[playeri][fwb.PD_PAWNS]
-	return hasCardSlots(gd, ACTN_STEAL) && playerInte > targetKnow && playerPawns > 0
+	return HasCardSlots(gd, ACTN_STEAL) && playerInte > targetKnow && playerPawns > 0
 }
 
 func (me *actnSteal) Do(gd *fwb.GameData) *er.Err {

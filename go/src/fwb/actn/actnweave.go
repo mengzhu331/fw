@@ -33,12 +33,12 @@ func actnWeaveParser(command sgs.Command) fwb.Action {
 
 	return &actnWeave{
 		amount:   weave.Payload,
-		playerID: command.Source,
+		playerID: command.Who,
 	}
 }
 
 func (me *actnWeave) String() string {
-	return fmt.Sprintf("[Action %v from Player %v, Amount %v]", _actionNames[ACTN_WEAVE], me.playerID, me.amount)
+	return fmt.Sprintf("[Action %v from Player %v, Amount %v]", ActionNames[ACTN_WEAVE], me.playerID, me.amount)
 }
 
 func (me *actnWeave) ID() int {
@@ -53,7 +53,7 @@ func (me *actnWeave) getCost() fwb.PlayerData {
 }
 
 func (me *actnWeave) ValidateAgainst(gd *fwb.GameData) bool {
-	if !hasCardSlots(gd, ACTN_WEAVE) {
+	if !HasCardSlots(gd, ACTN_WEAVE) {
 		return false
 	}
 
@@ -85,10 +85,10 @@ func (me *actnWeave) Do(gd *fwb.GameData) *er.Err {
 	gain := make(fwb.PlayerData, fwb.PD_MAX)
 	gain[fwb.PD_PT_SWEATER] = me.amount
 
-	p := gd.PData[me.playerID]
+	p := gd.PData[i]
 	p = fwb.PDAdd(cost, p)
 	p = fwb.PDAdd(gain, p)
 
-	gd.PData[me.playerID] = p
+	gd.PData[i] = p
 	return checkCard(gd, ACTN_TRAIN, me.playerID, 1)
 }

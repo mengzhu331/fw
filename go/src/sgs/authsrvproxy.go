@@ -8,25 +8,36 @@ import (
 
 type authSrvPrx interface {
 	setServerURI(string)
-	vclient(clientID int, token string) string
+	vclient(clientID int, token string) bool
+	enableTestClients(bool)
 }
 
 type sgasPrx struct {
-	serverURI string
+	serverURI   string
+	testEnabled bool
 }
 
-func (me *sgasPrx) vclient(clientID int, token string) string {
+func (me *sgasPrx) enableTestClients(enabled bool) {
+	me.testEnabled = enabled
+}
+
+func (me *sgasPrx) vclient(clientID int, token string) bool {
+
+	//clientIDs started with 0x40000000 are test client IDs
+	if me.testEnabled && clientID > 0x40000000 {
+		return true
+	}
 	requestURI := me.serverURI + "/vclient" + "?client=" + strconv.Itoa(clientID) + "&token=" + token
 	client := http.Client{}
 	request, _ := http.NewRequest("POST", requestURI, nil)
 	response, err := client.Do(request)
 	if err != nil {
 		_log.Ntf("Invalid clientID or token %v %v", clientID, token)
-		return ""
+		return false
 	}
 
-	username, _ := ioutil.ReadAll(response.Body)
-	return string(username)
+	registered, _ := ioutil.ReadAll(response.Body)
+	return string(registered) != ""
 }
 
 func (me *sgasPrx) setServerURI(serverURI string) {

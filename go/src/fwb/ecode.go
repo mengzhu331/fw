@@ -40,4 +40,7 @@ const (
 
 	//E_CMD_INVALID_PAYLOAD command received encloses an invalid payload
 	E_CMD_INVALID_PAYLOAD = _E_FWB | er.IMPT_THREAT | er.ET_INTERACTION | er.EI_ILLEGAL_PARAMETER | 0x12
+
+	//E_INVALID_GAME_PHASE game phase is set to be invalid
+	E_INVALID_GAME_PHASE = _E_FWB | er.IMPT_DEGRADE | er.ET_INTERNAL | er.EI_INVALID_STATE | 0x13
 )

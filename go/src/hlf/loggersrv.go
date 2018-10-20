@@ -18,7 +18,7 @@ type logItem struct {
 	text   string
 }
 
-var _logSrvCh = make(chan logItem)
+var _logSrvCh = make(chan logItem, 100)
 
 var _logRoot string
 

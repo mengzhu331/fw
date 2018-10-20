@@ -44,9 +44,10 @@ func Run(abf AppBuildFunc, confPath string) error {
 
 	if e != nil {
 		_log.Err("Failed to start SGS Web Server, SGS shut down")
-	} else {
-		_log.Inf("SGS started")
+		return e
 	}
 
-	return e
+	_auths.enableTestClients(c.TestEnabled)
+	_log.Inf("SGS started")
+	return nil
 }

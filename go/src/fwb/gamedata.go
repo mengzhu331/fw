@@ -64,6 +64,7 @@ type GameData struct {
 }
 
 func (me *PlayerData) init(clientID int, maxPawn int) {
+	*me = make(PlayerData, PD_MAX)
 	(*me)[PD_CLIENT_ID] = clientID
 	(*me)[PD_PT_HEART] = 0
 	(*me)[PD_PT_GOLD] = 30
@@ -112,8 +113,8 @@ func PDAdd(left PlayerData, right PlayerData) PlayerData {
 
 //AllAboveZero all fields of player data object valued above zero
 func (me PlayerData) AllAboveZero() bool {
-	for _, v := range me {
-		if v < 0 {
+	for k, v := range me {
+		if k != PD_CLIENT_ID && v < 0 {
 			return false
 		}
 	}

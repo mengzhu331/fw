@@ -33,12 +33,12 @@ func actnTrainParser(command sgs.Command) fwb.Action {
 
 	return &actnTrain{
 		skillID:  train.Payload,
-		playerID: command.Source,
+		playerID: command.Who,
 	}
 }
 
 func (me *actnTrain) String() string {
-	return fmt.Sprintf("[Action %v from Player %v, Skill ID %v]", _actionNames[ACTN_TRAIN], me.playerID, me.skillID)
+	return fmt.Sprintf("[Action %v from Player %v, Skill ID %v]", ActionNames[ACTN_TRAIN], me.playerID, me.skillID)
 }
 
 func (me *actnTrain) ID() int {
@@ -85,7 +85,7 @@ func (me *actnTrain) ValidateAgainst(gd *fwb.GameData) bool {
 
 	targetLv := p[me.skillID] + 1
 
-	return (targetLv < 1 && targetLv > 3) && res.AllAboveZero()
+	return (targetLv >= 1 && targetLv <= 3) && res.AllAboveZero()
 }
 
 func (me *actnTrain) Do(gd *fwb.GameData) *er.Err {
@@ -101,10 +101,10 @@ func (me *actnTrain) Do(gd *fwb.GameData) *er.Err {
 	gain := make(fwb.PlayerData, fwb.PD_MAX)
 	gain[me.skillID] = 1
 
-	p := gd.PData[me.playerID]
+	p := gd.PData[i]
 	p = fwb.PDAdd(cost, p)
 	p = fwb.PDAdd(gain, p)
 
-	gd.PData[me.playerID] = p
+	gd.PData[i] = p
 	return checkCard(gd, ACTN_TRAIN, me.playerID, 1)
 }

@@ -13,7 +13,7 @@ type wsConn struct {
 }
 
 func (me *wsConn) Send(cmd Command) error {
-	_log.Dbg("WS send command: %v", cmd.HexID(), cmd.Source, cmd.Payload)
+	_log.Dbg("WS send command: 0x%v, 0x%x, %v", cmd.HexID(), cmd.Who, cmd.Payload)
 
 	text, e := json.Marshal(cmd)
 	if e != nil {
@@ -25,26 +25,37 @@ func (me *wsConn) Send(cmd Command) error {
 
 func (me *wsConn) Run(ch chan Command, mch chan Command) {
 	_log.Inf("WS listening to client: %v", me.clientId)
+
+	readch := make(chan Command)
+
+	go func() {
+		for {
+			_, message, err := me.conn.ReadMessage()
+			if err != nil {
+				_log.Ntf("Failed to read client: %v, %v", me.clientId, err.Error())
+				mch <- Command{
+					ID:      _CMD_CLOSE_NET_CLIENT,
+					Who:     _CMD_WHO_WSCONN,
+					Payload: err.Error(),
+				}
+			}
+
+			readch <- Command{
+				ID:      CMD_FORWARD_TO_APP,
+				Payload: message,
+			}
+		}
+	}()
+
 	for {
-
-		me.conn.SetReadDeadline(time.Now().Add(time.Duration(5) * time.Second))
-		_, message, err := me.conn.ReadMessage()
-		if err != nil {
-			_log.Ntf("Failed to read client: %v", me.clientId)
-			goto __close
-		}
-
-		ch <- Command{
-			ID:      CMD_FORWARD_TO_APP,
-			Payload: message,
-		}
-
 		select {
 		case mc := <-mch:
 			if mc.ID == _CMD_CLOSE_NET_CLIENT {
-				_log.Inf("Close WS client: %v", me.clientId)
+				_log.Inf("Close WS client: %v, %v, %v", me.clientId, mc.Who, mc.Payload.(string))
 				goto __close
 			}
+		case command := <-readch:
+			ch <- command
 		case <-time.After(time.Duration(1) * time.Second):
 		}
 	}

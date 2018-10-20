@@ -9,12 +9,17 @@ import (
 	"sgs"
 	"strconv"
 	"sutil"
+
+	"github.com/google/uuid"
 )
+
+var _gameLog = hlf.MakeLogger("Games")
 
 type timer struct {
 	intervalMS int
 	elapsedMS  int
 	te         timerExe
+	id         int
 }
 
 type gameConf struct {
@@ -23,18 +28,22 @@ type gameConf struct {
 }
 
 type gameImp struct {
-	app     fwb.FwApp
-	lg      hlf.Logger
-	cm      fwb.CardManager
-	ap      *actn.ActionParser
-	profile string
-	conf    gameConf
+	app      fwb.FwApp
+	lg       hlf.Logger
+	alg      hlf.Logger
+	cm       fwb.CardManager
+	ap       *actn.ActionParser
+	profile  string
+	conf     gameConf
+	gameuuid uuid.UUID
+	timerID  int
 
 	//phase data
 	dynamicCmdMap map[int]cmdExe
 	timers        []*timer
 	pd            interface{}
 	phs           phase
+	newPhs        phase
 
 	//global game data
 	gd        fwb.GameData
@@ -43,7 +52,7 @@ type gameImp struct {
 
 type cmdExe func(*gameImp, sgs.Command) *er.Err
 
-type timerExe func(*gameImp, sgs.Command) (bool, *er.Err)
+type timerExe func(*gameImp, sgs.Command) *er.Err
 
 type enterPhase func(*gameImp) *er.Err
 
@@ -62,6 +71,12 @@ func (me *gameImp) setupPhases() {
 	_phaseEnterMap[_P_GAME_START] = pgsInit
 	_phaseEnterMap[_P_ROUNDS_START] = prsInit
 	_phaseEnterMap[_P_ROUNDS_TURNS] = prtInit
+	_phaseEnterMap[_P_ROUNDS_SETTLEMENT] = pstInit
+	_phaseEnterMap[_P_ROUNDS_FINISH] = prfInit
+	_phaseEnterMap[_P_GAME_SETTLEMENT] = pgstInit
+	_phaseEnterMap[_P_GAME_FINISH] = pgfInit
+	me.phs = _P_INIT
+	me.newPhs = me.phs
 }
 
 func makeGame(app fwb.FwApp, profile string) (*gameImp, *er.Err) {
@@ -84,19 +99,23 @@ func makeGame(app fwb.FwApp, profile string) (*gameImp, *er.Err) {
 		}).To(game.lg)
 	}
 
-	game.cm = cards.MakeCardManager(&game)
+	game.cm = cards.MakeCardManager()
 
-	cfile := "./" + profile + "/game.conf"
+	cfile := "./conf/profiles/" + profile + "/game.conf"
 	err := sutil.LoadConfFile(cfile, &game.conf)
 	if err != nil {
 		return nil, er.Throw(fwb.E_MISSING_GAME_SETTINGS, er.EInfo{
 			"details": "failed to load settings",
 			"file":    cfile,
-		})
+		}).To(game.lg)
 	}
 
 	e := game.cm.LoadCards(profile)
 
+	if e != nil {
+		e.To(game.lg)
+	}
+	game.setupPhases()
 	return &game, e
 }
 
@@ -110,6 +129,8 @@ func (me *gameImp) GetProfile() string {
 
 func (me *gameImp) GameOver(reasonCode int, details interface{}) *er.Err {
 
+	me.lg.Inf("Game Over: reason %v", reasonCode)
+
 	payload := map[string](interface{}){
 		"ReasonCode": reasonCode,
 		"Details":    details,
@@ -117,7 +138,7 @@ func (me *gameImp) GameOver(reasonCode int, details interface{}) *er.Err {
 
 	err := me.app.SendAllPlayers(sgs.Command{
 		ID:      fwb.CMD_GAME_OVER,
-		Source:  fwb.CMD_SOURCE_APP,
+		Who:     fwb.CMD_WHO_APP,
 		Payload: payload,
 	})
 
@@ -161,18 +182,34 @@ func (me *gameImp) SendCommand(command sgs.Command) *er.Err {
 		}).To(me.lg)
 	}
 
-	return err
+	return me.switchPhase()
 }
 
 func (me *gameImp) gotoPhase(p phase) *er.Err {
+	me.lg.Dbg("Go to phase from %x to %x", me.phs, p)
+	me.newPhs = p
+	return nil
+}
+
+func (me *gameImp) switchPhase() *er.Err {
+	if me.phs == me.newPhs {
+		return nil
+	}
+
+	me.lg.Dbg("Switch phase from %x to %x", me.phs, me.newPhs)
 	me.dynamicCmdMap = make(map[int]cmdExe)
 	me.timers = make([]*timer, 0)
-	me.phs = p
-	exec, found := _phaseEnterMap[p]
+
+	exec, found := _phaseEnterMap[me.newPhs]
 	if found {
+		me.phs = me.newPhs
 		return exec(me)
 	}
-	return nil
+
+	return er.Throw(fwb.E_INVALID_GAME_PHASE, er.EInfo{
+		"details": "cannot switch to invalid game phase",
+		"phase":   me.newPhs,
+	}).To(me.lg)
 }
 
 func onRun(me *gameImp, command sgs.Command) *er.Err {
@@ -181,31 +218,49 @@ func onRun(me *gameImp, command sgs.Command) *er.Err {
 }
 
 func onTickDefault(me *gameImp, command sgs.Command) *er.Err {
-	var err *er.Err
+	if me.newPhs != me.phs {
+		return me.switchPhase()
+	}
 
 	deltaMS := command.Payload.(int)
 
-	for id, t := range me.timers {
-		if t != nil {
-			t.elapsedMS += deltaMS
-			if t.elapsedMS >= t.intervalMS {
-				c, e := t.te(me, sgs.Command{
-					ID:      fwb.CMD_TIMER,
-					Source:  fwb.CMD_SOURCE_APP,
-					Payload: id,
-				})
-				if !c {
-					me.timers[id] = nil
-				}
-				err = err.Push(e)
-				if err.Importance() >= er.IMPT_DEGRADE {
-					return err
-				}
+	return tickTimer(me, deltaMS)
+}
+
+func (me *gameImp) needSwitchPhase() bool {
+	return me.phs != me.newPhs
+}
+
+func tickTimer(me *gameImp, deltaMS int) *er.Err {
+	if len(me.timers) < 1 {
+		return nil
+	}
+
+	var err *er.Err
+	timersLeft := make([]*timer, 0)
+	for _, t := range me.timers {
+		t.elapsedMS += deltaMS
+		if t.elapsedMS >= t.intervalMS {
+			err = err.Push(t.te(me, sgs.Command{
+				ID:      fwb.CMD_TIMER,
+				Who:     fwb.CMD_WHO_APP,
+				Payload: t.id,
+			}))
+
+			if err.Importance() >= er.IMPT_DEGRADE {
+				return err
 			}
+
+			if me.needSwitchPhase() {
+				break
+			}
+		} else {
+			timersLeft = append(timersLeft, t)
 		}
 	}
 
-	return err
+	me.timers = timersLeft
+	return nil
 }
 
 func (me *gameImp) setDCE(cmdId int, dce cmdExe) {
@@ -220,7 +275,9 @@ func (me *gameImp) setTimer(intervalMS int, te timerExe) int {
 	t := timer{
 		intervalMS: intervalMS,
 		te:         te,
+		id:         me.timerID,
 	}
+	me.timerID++
 
 	var i int
 	for i = range me.timers {
@@ -233,9 +290,18 @@ func (me *gameImp) setTimer(intervalMS int, te timerExe) int {
 	} else {
 		me.timers[i] = &t
 	}
-	return i
+	return t.id
 }
 
 func (me *gameImp) unsetTimer(id int) {
-	me.timers[id] = nil
+	var i int
+	for i = range me.timers {
+		if me.timers[i].id == id {
+			break
+		}
+	}
+
+	if i < len(me.timers) {
+		me.timers = append(me.timers[:i], me.timers[i+1:]...)
+	}
 }

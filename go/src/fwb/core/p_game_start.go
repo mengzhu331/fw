@@ -4,6 +4,8 @@ import (
 	"er"
 	"fwb"
 	"sgs"
+
+	"github.com/google/uuid"
 )
 
 type playerAckMap map[int]bool
@@ -13,6 +15,11 @@ type pgsData struct {
 }
 
 func pgsInit(me *gameImp) *er.Err {
+	me.lg.Dbg("Enter Game Start phase")
+
+	me.gameuuid, _ = uuid.NewUUID()
+	me.alg = _gameLog.Child("Game_" + me.gameuuid.String())
+
 	me.gd.Init(me.app.GetPlayers(), me.conf.MaxPawn, me.conf.MinRounds)
 
 	me.setDCE(fwb.CMD_GAME_START_ACK, pgsOnGameStartAck)
@@ -22,15 +29,25 @@ func pgsInit(me *gameImp) *er.Err {
 	}
 	return me.app.SendAllPlayers(sgs.Command{
 		ID:      fwb.CMD_GAME_START,
-		Source:  fwb.CMD_SOURCE_APP,
+		Who:     fwb.CMD_WHO_APP,
 		Payload: makePlayersInfo(me),
 	})
 }
 
 func pgsOnGameStartAck(me *gameImp, command sgs.Command) *er.Err {
-	pd := me.pd.(pgsData)
-	pd.pam[command.Source] = true
+	pd := me.pd.(*pgsData)
+	pd.pam[command.Who] = true
 	npa := 0
+
+	err := me.app.SendToPlayer(command.Who, sgs.Command{
+		ID:      fwb.CMD_SYNC_GAME_STATE,
+		Who:     fwb.CMD_WHO_APP,
+		Payload: me.gd,
+	})
+
+	if err.Importance() >= er.IMPT_DEGRADE {
+		return err
+	}
 
 	for range pd.pam {
 		npa++
@@ -38,24 +55,23 @@ func pgsOnGameStartAck(me *gameImp, command sgs.Command) *er.Err {
 
 	if npa == len(me.app.GetPlayers()) {
 		me.gotoPhase(_P_ROUNDS_START)
-		return nil
 	}
 
 	return nil
 }
 
-func pgsOnTimeOut(me *gameImp, command sgs.Command) (bool, *er.Err) {
+func pgsOnTimeOut(me *gameImp, command sgs.Command) *er.Err {
 	noResPlayers := make([]int, 0)
 	players := me.app.GetPlayers()
-	pd := me.pd.(pgsData)
+	pd := me.pd.(*pgsData)
 
-	for cid := range players {
-		if _, found := pd.pam[cid]; !found {
-			noResPlayers = append(noResPlayers, cid)
+	for _, p := range players {
+		if _, found := pd.pam[p.ID()]; !found {
+			noResPlayers = append(noResPlayers, p.ID())
 		}
 	}
 
-	return false, me.GameOver(fwb.GAME_OVER_PLAYER_TIMEOUT, noResPlayers)
+	return me.GameOver(fwb.GAME_OVER_PLAYER_TIMEOUT, noResPlayers)
 }
 
 func makePlayersInfo(me *gameImp) map[string]int {

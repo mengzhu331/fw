@@ -12,7 +12,7 @@ var _ch = make(chan string)
 
 func main() {
 	_log.Ntf("FWB starting up...")
-	e := sgs.Run(core.FwAppBuildFunc, "../conf")
+	e := sgs.Run(core.FwAppBuildFunc, "./conf")
 	if e == nil {
 		var c string
 

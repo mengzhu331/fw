@@ -8,6 +8,8 @@ import (
 	"strconv"
 )
 
+var _debugGlobalApp *fwAppImp
+
 //FwAppBuildFunc hook up with the SGS server
 func FwAppBuildFunc() sgs.App {
 	return &fwAppImp{}
@@ -28,17 +30,24 @@ type fwAppImp struct {
 }
 
 func (me *fwAppImp) Init(s sgs.Session, clients []int, profile string) *er.Err {
+	_debugGlobalApp = me
+
 	me.s = s
 
 	me.lg = s.GetLogger()
 
 	me.pm = make(map[int]fwb.PlayerAgent)
 
-	for c := range clients {
+	for _, c := range clients {
+		me.lg.Dbg("Try to make player: clientID 0x%x, name %v", c, me.s.GetClientName(c))
 		me.pm[c] = makePlayer(me, c, me.s.GetClientName(c))
 	}
 
 	game, err := makeGame(me, profile)
+	if err.Importance() >= er.IMPT_DEGRADE {
+		return err
+	}
+
 	me.g = game
 
 	me.mp = mockPlayers{}
@@ -57,6 +66,10 @@ func (me *fwAppImp) SendCommand(command sgs.Command) *er.Err {
 
 	if found {
 		return exec(me, command)
+	}
+
+	if command.InCategory(sgs.CMD_C_CLIENT_TO_APP) {
+		return forwardToGame(me, command)
 	}
 
 	return er.Throw(fwb.E_INVALID_CMD, er.EInfo{
@@ -83,10 +96,10 @@ func forwardToGame(app *fwAppImp, command sgs.Command) *er.Err {
 }
 
 func forwardToPlayer(app *fwAppImp, command sgs.Command) *er.Err {
-	p, found := app.pm[command.Source]
+	p, found := app.pm[command.Who]
 	if !found {
 		return er.Throw(fwb.E_CMD_INVALID_CLIENT, er.EInfo{
-			"details": "cannot forward the command to a player, invalid client ID " + strconv.Itoa(command.Source) + ", command " + command.HexID(),
+			"details": "cannot forward the command to a player, invalid client ID " + strconv.Itoa(command.Who) + ", command " + command.HexID(),
 		}).To(app.lg)
 	}
 
@@ -132,7 +145,7 @@ func (me *fwAppImp) SendToSession(command sgs.Command) *er.Err {
 }
 
 func (me *fwAppImp) GetPlayers() []fwb.PlayerAgent {
-	players := make([]fwb.PlayerAgent, len(me.pm))
+	players := make([]fwb.PlayerAgent, 0, len(me.pm))
 	for _, p := range me.pm {
 		players = append(players, p)
 	}
@@ -140,4 +153,14 @@ func (me *fwAppImp) GetPlayers() []fwb.PlayerAgent {
 }
 
 func (me *fwAppImp) SendToMockPlayer(playerID int, command sgs.Command) {
+	me.mp.sendCommand(playerID, command)
+}
+
+func (me *fwAppImp) GetPlayer(playerID int) fwb.PlayerAgent {
+	for _, player := range me.pm {
+		if player.ID() == playerID {
+			return player
+		}
+	}
+	return nil
 }

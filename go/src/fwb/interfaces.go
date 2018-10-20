@@ -16,6 +16,8 @@ type FwApp interface {
 	SendToGame(command sgs.Command) *er.Err
 	SendToSession(command sgs.Command) *er.Err
 	GetSession() sgs.Session
+	//GetPlayer retrieve a specific PlayerAgent matching a playerID
+	GetPlayer(playerID int) PlayerAgent
 }
 
 //PlayerAgent is the proxy of remote player or computer mocked player

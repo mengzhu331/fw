@@ -24,6 +24,8 @@ func (me *netClient) run(ch chan Command) {
 
 func (me *netClient) close() {
 	me.mch <- Command{
-		ID: _CMD_CLOSE_NET_CLIENT,
+		ID:      _CMD_CLOSE_NET_CLIENT,
+		Who:     _CMD_WHO_SGS_SERVER,
+		Payload: "closed by server command",
 	}
 }

@@ -29,10 +29,16 @@ const (
 	CMD_C_APP_PRIVATE = CMD_C_APP | 0x00020000
 )
 
+const (
+	_CMD_WHO_SGS    = 0x40000000
+	_CMD_WHO_WSCONN = _CMD_WHO_SGS | (iota + 1)
+	_CMD_WHO_SGS_SERVER
+)
+
 //Command common command object
 type Command struct {
 	ID      int
-	Source  int
+	Who     int
 	Payload interface{}
 }
 

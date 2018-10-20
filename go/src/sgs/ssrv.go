@@ -121,7 +121,7 @@ func (me *sessionServer) joinSessionQueue(username string, clientID int, conn Ne
 			return er.Throw(_E_CLIENT_ALREADY_JOIN_SESSION, er.EInfo{
 				"details": "client duplicated join session request",
 				"client":  strconv.Itoa(clientID),
-			})
+			}).To(me.lg)
 		}
 	}
 
@@ -209,7 +209,7 @@ func (me *sessionServer) reconnectClient(clientID int, conn NetConn) *er.Err {
 
 	s.mch <- Command{
 		ID:      _CMD_CLIENT_RECONNECT,
-		Source:  clientID,
+		Who:     clientID,
 		Payload: conn,
 	}
 	return nil

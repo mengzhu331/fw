@@ -38,7 +38,7 @@ func (me *mockApp) SendCommand(command Command) *er.Err {
 	}
 
 	for _, cid := range me.cid {
-		command.Source = cid
+		command.Who = cid
 		me.s.ForwardToClient(cid, command)
 	}
 	return nil
@@ -54,7 +54,7 @@ type mockConn struct {
 }
 
 func (me *mockConn) Send(cmd Command) error {
-	cmd.Source = me.clientID
+	cmd.Who = me.clientID
 	me.player.sendCommand(cmd)
 	return nil
 }
@@ -137,7 +137,7 @@ func (me *scriptedPlayer) run(t *testing.T) {
 }
 
 func (me *scriptedPlayer) sendCommand(command Command) {
-	me.lg.Inf("Command received: 0x%x, %v", command.ID, command.Source)
+	me.lg.Inf("Command received: 0x%x, %v", command.ID, command.Who)
 	me.rl.ch <- command
 }
 
@@ -233,7 +233,7 @@ func (me *resLogger) run() {
 		case c := <-me.ch:
 			t := time.Now().Sub(me.initT) / time.Millisecond
 			me.cl = append(me.cl, commandLE{
-				client: c.Source,
+				client: c.Who,
 				t:      int64(t),
 				id:     c.ID,
 			})
@@ -296,7 +296,7 @@ __quit:
 }
 
 func (me *randomPlayer) sendCommand(command Command) {
-	me.lg.Inf("Command receiverd 0x%x, %v", command.ID, command.Source)
+	me.lg.Inf("Command receiverd 0x%x, %v", command.ID, command.Who)
 }
 
 func (me *randomPlayer) getClientID() int {

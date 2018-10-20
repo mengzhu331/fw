@@ -39,6 +39,9 @@ var _mpCmdExeMap = map[int]mpCmdExe{
 }
 
 func (me *mockPlayers) sendCommand(clientID int, command sgs.Command) {
+	if command.ID == fwb.CMD_ROUND_SETTLEMENT {
+		me.g.lg.Dbg("Round settlement")
+	}
 	me.commandQueue = append(me.commandQueue, mpCommand{
 		clientID: clientID,
 		command:  command,
@@ -82,8 +85,8 @@ func (me *mockPlayers) execQueue() *er.Err {
 
 func mpOnGameStart(me *gameImp, cid int, command sgs.Command) *er.Err {
 	return me.SendCommand(sgs.Command{
-		ID:     fwb.CMD_GAME_START_ACK,
-		Source: cid,
+		ID:  fwb.CMD_GAME_START_ACK,
+		Who: cid,
 	})
 }
 
@@ -93,8 +96,8 @@ func mpOnGameOver(me *gameImp, cid int, command sgs.Command) *er.Err {
 
 func mpOnRoundStart(me *gameImp, cid int, command sgs.Command) *er.Err {
 	return me.SendCommand(sgs.Command{
-		ID:     fwb.CMD_ROUND_START_ACK,
-		Source: cid,
+		ID:  fwb.CMD_ROUND_START_ACK,
+		Who: cid,
 	})
 }
 
@@ -107,8 +110,8 @@ func mpOnStartTurn(me *gameImp, cid int, command sgs.Command) *er.Err {
 		}
 
 		return me.SendCommand(sgs.Command{
-			ID:     fwb.CMD_ACTION,
-			Source: cid,
+			ID:  fwb.CMD_ACTION,
+			Who: cid,
 			Payload: actnCmd{
 				ActionID: actn.ACTN_SKIP,
 				Payload:  nil,
@@ -123,6 +126,8 @@ func mpOnActionCommitted(me *gameImp, cid int, command sgs.Command) *er.Err {
 }
 
 func mpOnRoundsSettlement(me *gameImp, cid int, command sgs.Command) *er.Err {
+	cx := me.gd.GetPDIndex(cid)
+
 	type sd struct {
 		Cereals int
 		Meat    int
@@ -131,13 +136,13 @@ func mpOnRoundsSettlement(me *gameImp, cid int, command sgs.Command) *er.Err {
 
 	pl := sd{}
 
-	pl.Meat = int(math.Min(5.0, float64(me.gd.PData[cid][fwb.PD_PT_MEAT])))
-	pl.Cereals = int(math.Min(5.0-float64(pl.Meat), float64(me.gd.PData[cid][fwb.PD_PT_CEREALS])))
-	pl.Sweater = int(math.Min(5.0, float64(me.gd.PData[cid][fwb.PD_PT_SWEATER])))
+	pl.Meat = int(math.Min(5.0, float64(me.gd.PData[cx][fwb.PD_PT_MEAT])))
+	pl.Cereals = int(math.Min(5.0-float64(pl.Meat), float64(me.gd.PData[cx][fwb.PD_PT_CEREALS])))
+	pl.Sweater = int(math.Min(5.0, float64(me.gd.PData[cx][fwb.PD_PT_SWEATER])))
 
 	return me.SendCommand(sgs.Command{
 		ID:      fwb.CMD_COMMIT_ROUND_SETTLEMENT,
-		Source:  cid,
+		Who:     cid,
 		Payload: pl,
 	})
 }

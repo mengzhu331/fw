@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	_SOURCE_GAME = 0x80000000
+	_CMD_WHO_GAME = 0x80000000
 )
 
 const (
@@ -43,6 +43,9 @@ const (
 
 	//CMD_GAME_FINISH command for notifying players that game has finished with player rank ready
 	CMD_GAME_FINISH
+
+	//CMD_SYNC_GAME_STATE command for synchronize game state between components
+	CMD_SYNC_GAME_STATE
 )
 
 const (
@@ -63,6 +66,6 @@ const (
 )
 
 const (
-	//CMD_SOURCE_APP the command is sent from the game system to the players or other systems
-	CMD_SOURCE_APP = 0x8000 + iota + 1
+	//CMD_WHO_APP the command is sent from the game system to the players or other systems
+	CMD_WHO_APP = (_CMD_WHO_GAME | 0x8000) + iota + 1
 )

@@ -24,6 +24,8 @@ type session struct {
 	clients map[int]*netClient
 	app     App
 	closed  bool
+	closing bool
+	appRun  bool
 
 	baseTickMs int
 	lg         hlf.Logger
@@ -48,7 +50,7 @@ func (me *session) GetClientName(cid int) string {
 		er.Throw(_E_REQUEST_WITH_INVALID_CLIENT_ID, er.EInfo{
 			"details":  "invalid client ID when invoking GetClientName()",
 			"clientid": cid,
-		})
+		}).To(me.lg)
 
 		return "unknown"
 	}
@@ -66,9 +68,9 @@ func (me *session) ForwardToClient(cid int, command Command) *er.Err {
 		}).To(me.lg)
 	}
 
-	err := client.send(command)
+	e := client.send(command)
 
-	if err != nil {
+	if e != nil {
 		return er.Throw(_E_CLIENT_CONNECTION_FAIL, er.EInfo{
 			"details": "failed to interact with client",
 			"client":  cid,
@@ -102,31 +104,44 @@ func (me *session) run(abf AppBuildFunc, profile string) *er.Err {
 		return err
 	}
 
-	me.lg.Inf("Session started: %v", me.id)
-
-	me.app.SendCommand(Command{
-		ID: CMD_APP_RUN,
-	})
-
 	go sessionRoutine(me)
+	me.lg.Inf("Session started: %v", me.id)
 
 	return nil
 
 }
 
+func (me *session) runApp() *er.Err {
+	if me.appRun {
+		return nil
+	}
+
+	me.appRun = true
+
+	return me.app.SendCommand(Command{
+		ID: CMD_APP_RUN,
+	})
+
+}
+
 func sessionRoutine(me *session) {
 	t := time.Now()
-	for {
+	for !me.closing {
 		select {
 		case mc := <-me.mch:
-			me.lg.Dbg("receive management: %v %v %v", mc.HexID, mc.Source, mc.Payload)
+			me.lg.Dbg("receive management: %v %v %v", mc.HexID, mc.Who, mc.Payload)
 
 			err := me.exec(mc)
-			if (err.Code() & er.E_IMPORTANCE) >= er.IMPT_UNRECOVERABLE {
+			if (err.Code() & er.E_IMPORTANCE) >= er.IMPT_DEGRADE {
 				goto __close
 			}
 
 		case <-time.After(time.Duration(me.baseTickMs) * time.Millisecond):
+			err := me.runApp()
+			if (err.Code() & er.E_IMPORTANCE) >= er.IMPT_DEGRADE {
+				goto __close
+			}
+
 			tt := time.Now()
 			dms := int(tt.Sub(t) / time.Millisecond)
 
@@ -138,7 +153,7 @@ func sessionRoutine(me *session) {
 
 		case cmd := <-me.cch:
 
-			me.lg.Dbg("receive command: %v %v %v", cmd.HexID, cmd.Source, cmd.Payload)
+			me.lg.Dbg("receive command: %v %v %v", cmd.HexID, cmd.Who, cmd.Payload)
 
 			err := me.exec(cmd)
 			if (err.Code() & er.E_IMPORTANCE) >= er.IMPT_UNRECOVERABLE {
@@ -147,10 +162,12 @@ func sessionRoutine(me *session) {
 		}
 	}
 __close:
+	me.lg.Inf("Closing session")
 	for _, c := range me.clients {
 		c.close()
 	}
 	me.closed = true
+	me.lg.Inf("Session closed")
 }
 
 func (me *session) exec(command Command) *er.Err {
@@ -216,13 +233,14 @@ func execForwardToClient(s *session, command Command) *er.Err {
 }
 
 func execClientReconnect(s *session, command Command) *er.Err {
-	s.lg.Dbg("Client reconnect: client %v", command.Source)
+	s.lg.Dbg("Client reconnect: client %v", command.Who)
 
 	return s.app.SendCommand(command)
 }
 
 func execAppClose(s *session, command Command) *er.Err {
-	s.closed = true
+	s.lg.Inf("App is to be closed by itself")
+	s.closing = true
 	return nil
 }
 

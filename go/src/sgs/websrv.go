@@ -92,7 +92,7 @@ func joinSessionRest(w http.ResponseWriter, r *http.Request) {
 		goto __invalidparameter
 	}
 
-	if username[0] != _auths.vclient(icid, token[0]) {
+	if !_auths.vclient(icid, token[0]) {
 		goto __failtovalidateclient
 	}
 
@@ -102,16 +102,13 @@ func joinSessionRest(w http.ResponseWriter, r *http.Request) {
 		goto __failtoconnectws
 	}
 
-	err = _srv.joinSessionQueue(username[0], icid, &wsConn{
+	if e := _srv.joinSessionQueue(username[0], icid, &wsConn{
 		clientId: icid,
-		conn:     conn})
-
-	if err != nil {
-		_log.Err("Failed to join session")
+		conn:     conn}); err != nil {
+		_log.Err("Failed to join session: %v", e)
 		goto __failtojoinsession
 	}
 
-	w.Write([]byte("Success"))
 	_log.Inf("Connect WS successful")
 	return
 
@@ -170,7 +167,7 @@ func quitSessionRest(w http.ResponseWriter, r *http.Request) {
 		goto __invalidparameter
 	}
 
-	if _auths.vclient(icid, token[0]) == "" {
+	if !_auths.vclient(icid, token[0]) {
 		goto __failtovalidateclient
 	}
 
@@ -235,7 +232,7 @@ func reconnectClientRest(w http.ResponseWriter, r *http.Request) {
 		goto __invalidparameter
 	}
 
-	if "" == _auths.vclient(icid, token[0]) {
+	if !_auths.vclient(icid, token[0]) {
 		goto __failtovalidateclient
 	}
 
