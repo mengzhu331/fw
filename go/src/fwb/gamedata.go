@@ -26,8 +26,8 @@ const (
 	//PD_PT_SWEATER index in PlayerData for property Sweater
 	PD_PT_SWEATER
 
-	//PD_PT_WINE index in PlayerData for property Wine
-	PD_PT_WINE
+	//PD_PT_BEER index in PlayerData for property Wine
+	PD_PT_BEER
 
 	//PD_SK_STRENGTH index in PlayerData for skill Strength
 	PD_SK_STRENGTH
@@ -72,7 +72,7 @@ func (me *PlayerData) init(clientID int, maxPawn int) {
 	(*me)[PD_PT_MEAT] = 0
 	(*me)[PD_PT_WOOL] = 0
 	(*me)[PD_PT_SWEATER] = 0
-	(*me)[PD_PT_WINE] = 0
+	(*me)[PD_PT_BEER] = 0
 
 	(*me)[PD_SK_STRENGTH] = 0
 	(*me)[PD_SK_KNOWLEDGE] = 0

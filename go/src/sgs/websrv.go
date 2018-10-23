@@ -96,6 +96,10 @@ func joinSessionRest(w http.ResponseWriter, r *http.Request) {
 		goto __failtovalidateclient
 	}
 
+	if _, inSession := _srv.clientInSession(icid); inSession {
+		goto __clientinsession
+	}
+
 	conn, err = makeWSConnection(w, r)
 	if err != nil {
 		_log.Err(err.Error())
@@ -139,6 +143,12 @@ __failtojoinsession:
 	w.Write([]byte(info))
 	_log.Ntf(info)
 	return
+
+__clientinsession:
+	info = "Cannot join session with duplicated client id"
+	w.WriteHeader(http.StatusBadRequest)
+	w.Write([]byte(info))
+	_log.Ntf(info)
 }
 
 func quitSessionRest(w http.ResponseWriter, r *http.Request) {

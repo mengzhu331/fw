@@ -162,12 +162,7 @@ func sessionRoutine(me *session) {
 		}
 	}
 __close:
-	me.lg.Inf("Closing session")
-	for _, c := range me.clients {
-		c.close()
-	}
-	me.closed = true
-	me.lg.Inf("Session closed")
+	_srv.closeSession(me)
 }
 
 func (me *session) exec(command Command) *er.Err {

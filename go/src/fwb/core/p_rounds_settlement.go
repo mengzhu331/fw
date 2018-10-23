@@ -25,7 +25,7 @@ func pstInit(me *gameImp) *er.Err {
 	}
 
 	me.setDCE(fwb.CMD_COMMIT_ROUND_SETTLEMENT, pstOnCommitRoundSettlement)
-	me.setTimer(2000, pstOnTimeOut)
+	me.setTimer(30000, pstOnTimeOut)
 
 	return me.app.SendAllPlayers(sgs.Command{
 		ID:  fwb.CMD_ROUND_SETTLEMENT,
@@ -97,13 +97,24 @@ func applyPS(me *gameImp) *er.Err {
 		printPS(me, k, *v)
 
 		hearts := v.Cereals*2 + v.Meat*3 + v.Sweater*2
+
+		px := me.gd.GetPDIndex(k)
+
+		hl := me.gd.PData[px][fwb.PD_HOUSE_LV]
+		if hl == 1 {
+			hearts += 1
+		} else if hl == 2 {
+			hearts += 2
+		} else if hl >= 2 {
+			hearts += 4
+		}
+
 		delta := make(fwb.PlayerData, fwb.PD_MAX)
 		delta[fwb.PD_PT_HEART] = hearts
 		delta[fwb.PD_PT_CEREALS] = -v.Cereals
 		delta[fwb.PD_PT_MEAT] = -v.Meat
 		delta[fwb.PD_PT_SWEATER] = -v.Sweater
 
-		px := me.gd.GetPDIndex(k)
 		me.gd.PData[px] = fwb.PDAdd(me.gd.PData[px], delta)
 	}
 

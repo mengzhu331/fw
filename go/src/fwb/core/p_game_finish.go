@@ -16,7 +16,7 @@ func pgfInit(me *gameImp) *er.Err {
 	gameRank := makeGameRank(me)
 
 	me.setDCE(fwb.CMD_REMATCH, pgfOnRematch)
-	me.setTimer(1000, pgfOnTimeOut)
+	me.setTimer(10000, pgfOnTimeOut)
 
 	printRank(me, gameRank)
 

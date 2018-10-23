@@ -1,0 +1,264 @@
+.App {
+  text-align: center;
+}
+
+.signin{
+  width: 100vw;
+  height: 100vh;
+  background-image: url("./img/signin-bg.png");
+  background-size: 100% 100%;
+  display: grid;
+  grid-template-rows: 70% 50%;
+}
+
+.dlg-row{
+  align-items: center;
+}
+
+#si-dialog{
+  display: grid;
+  grid-gap: 10px 10px;
+  grid-template-columns: auto;
+  grid-template-rows: 30px 30px 100px;
+  align-self: center;
+  align-items: center;
+  justify-content: center;
+}
+
+#si-info, #si-username{
+  align-self:center;
+  width: 50vw;
+  font-size: 20px;
+}
+
+#si-login-container{
+  align-items:center;
+}
+
+#si-login{
+  align-self: center;
+  font-size: 20px;
+  width: 100px;
+  height: 100px;
+}
+
+.dlg-info{
+  position: absolute;
+  width: 90vw;
+  height: 20vh;
+  top:40vh;
+  left: 5vw;
+  background-image: url("./img/dlg-info-bg.jpg");
+  background-size: 100% 100%;
+  display: grid;
+  grid-template-rows: 30% 40% 30%;
+  opacity: 0.7;
+}
+
+.dlg-info-header{
+  font-size: 20px;
+  color: #602020;
+}
+
+.dlg-info-content{
+  font-size: 30px;
+  color: #103020;
+}
+
+.dlg-info-buttons{
+  font-size: 20px;
+}
+
+.dlg-info-icon{
+  width: 20px;
+  height:20px;
+}
+
+.game-main-screen{
+  width: 100vw;
+  height: 100vh;
+  background-color: #306020;
+  display: flex;
+  grid-template-rows: 20vh 75vh;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.board-bg{
+  width: 80vw;
+  height: 75vh;
+  background-image: url("./img/board.jpg");
+  background-size: 100% 100%;
+  justify-content: center;
+  align-items: center;
+  display:flex;
+}
+
+.board{
+  width: 90%;
+  height: 90%;
+  display:flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
+
+.card{
+  width: 31%;
+  height: 31%;
+  background-size: 100% 100%;
+}
+
+.player-data-row{
+  width: 90vw;
+  height: 28vh;
+}
+
+.player-data-bg{
+  width: 100%;
+  height: 28vh;
+  background-image: url("./img/player-data-bg.jpg");
+  background-size: 100% 100%;
+  justify-content: center;
+  align-items: center;
+  display:flex;
+}
+
+.player-data{
+  width: 64vw;
+  height: 17vh;
+  display:flex;
+}
+
+.player-card{
+  width:33%;
+  height: 100%;
+  display:grid;
+  grid-template:"un  un  et" 10%
+                "un  un  sk1" 15%
+                "ht  gd  sk2" 15%
+                "ht  gd  sk3" 15%
+                "cr  mt  hm"  15%
+                "wl  st  br"  15%
+                "tk  tk  tk"  15%
+};
+
+.pc-name{
+  grid-area: un;
+  font-size: 22px;
+}
+
+.pc-username{
+  text-align: left;
+  grid-area: un;
+  font-size: 22px;
+}
+
+.pc-strength{
+  grid-area: sk1;
+}
+
+.pc-knowledge{
+  grid-area: sk2;
+}
+
+.pc-intelligence{
+  grid-area: sk3;
+}
+
+.pc-home-level{
+  grid-area: hm;
+}
+
+.pc-heart{
+  grid-area: ht;
+  background-image: url('./img/heart.png');
+  background-size: 100% 100%;
+  text-align: center;
+  vertical-align: middle;
+  height: 5vh;
+  line-height: 5vh;
+  font-size: 16px;
+  color: #ffe0e0;
+}
+
+.pc-gold{
+  grid-area: gd;
+  background-image: url('./img/coin.png');
+  background-size: 100% 100%;
+  text-align: center;
+  vertical-align: middle;
+  height: 5vh;
+  line-height: 5vh;
+  font-size: 16px;
+  color: #503010;
+}
+
+.pc-cereals{
+  grid-area: cr;
+}
+
+.pc-meat{
+  grid-area: mt;
+}
+
+.pc-wool{
+  grid-area: wl;
+}
+
+.pc-sweater{
+  grid-area: st;
+}
+
+.pc-beer{
+  grid-area: br;
+}
+
+.pc-token{
+  grid-area: tk;
+}
+
+.icon{
+  width: 2vw;
+  height: 2vh;
+}
+
+.iconToken{
+  width: 3.5vw;
+  height: 7vh;
+}
+
+.round{
+  background-image: url('./img/round.jpg');
+  background-size: 100% 100%;
+  display: grid;
+  grid-template-columns: 15% 20% 30% 20% 15%;
+  width: 50vw;
+  height:6vh;
+  position: absolute;
+  top:27vh;
+  align-items: center;
+  justify-content: center;
+}
+
+.round-text{
+  font-size: 18px;
+  color:#103020;
+}
+
+.round-label{
+  font-size:38px;
+  color:#306020;
+}
+
+.timer{
+  position: absolute;
+  width: 15vw;
+  height: 10vh;
+  top: 90vh;
+  left: 85vw;
+  font-size: 34px;
+  background-color: #f5e612;
+  color:#700000;
+}

@@ -26,7 +26,7 @@ func (me *actnBasic) getCost(player fwb.PlayerData) fwb.PlayerData {
 	case ACTN_EMPLOY:
 		cost[fwb.PD_PT_GOLD] = -10
 	case ACTN_PARTY:
-		cost[fwb.PD_PT_WINE] = -2
+		cost[fwb.PD_PT_BEER] = -2
 		cost[fwb.PD_PT_MEAT] = -2
 	case ACTN_TAKE_VACATION:
 		cost[fwb.PD_PT_GOLD] = -5
@@ -159,9 +159,9 @@ func (me *actnBasic) makeGain(player fwb.PlayerData) fwb.PlayerData {
 		}
 	case ACTN_MAKE_WINE:
 		if know > 1 && inte > 1 {
-			gain[fwb.PD_PT_WINE] = 2
+			gain[fwb.PD_PT_BEER] = 2
 		} else {
-			gain[fwb.PD_PT_WINE] = 1
+			gain[fwb.PD_PT_BEER] = 1
 		}
 	}
 	return gain

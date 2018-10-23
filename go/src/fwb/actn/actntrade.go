@@ -22,7 +22,7 @@ func PtPrices() fwb.PlayerData {
 	p[fwb.PD_PT_MEAT] = 5
 	p[fwb.PD_PT_SWEATER] = 10
 	p[fwb.PD_PT_WOOL] = 5
-	p[fwb.PD_PT_WINE] = 20
+	p[fwb.PD_PT_BEER] = 20
 	return p
 }
 

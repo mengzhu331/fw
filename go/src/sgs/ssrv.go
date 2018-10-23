@@ -84,6 +84,28 @@ func makeSSrv(param SSrvParam) (*sessionServer, error) {
 	return server, nil
 }
 
+func (me *sessionServer) clientInSession(clientID int) (int, bool) {
+	me.clientsMutex.RLock()
+	var s int
+	s, found := me.clients[clientID]
+	me.clientsMutex.RUnlock()
+	if found {
+		return s, true
+	}
+
+	me.currentSessionMutex.Lock()
+	if me.currentSession != nil {
+		_, found = me.currentSession.clients[clientID]
+		if found {
+			s := me.currentSession.id
+			me.currentSessionMutex.Unlock()
+			return s, true
+		}
+	}
+	me.currentSessionMutex.Unlock()
+	return -1, false
+}
+
 func (me *sessionServer) joinSessionQueue(username string, clientID int, conn NetConn) *er.Err {
 	me.lg.Inf("Client %v requested to join session queue", clientID)
 
@@ -230,6 +252,12 @@ func (me *sessionServer) closeSession(s *session) {
 		delete(me.clients, c.id)
 	}
 	me.clientsMutex.Unlock()
+
+	me.sessionsMutex.Lock()
+	if _, found := me.sessions[s.id]; found {
+		delete(me.sessions, s.id)
+	}
+	me.sessionsMutex.Unlock()
 
 	me.lg.Inf("Session %v closed", s.id)
 }

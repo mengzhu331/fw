@@ -36,7 +36,7 @@ func prsInit(me *gameImp) *er.Err {
 	return me.app.SendAllPlayers(sgs.Command{
 		ID:      fwb.CMD_ROUND_START,
 		Who:     fwb.CMD_WHO_APP,
-		Payload: cards,
+		Payload: me.gd,
 	})
 }
 

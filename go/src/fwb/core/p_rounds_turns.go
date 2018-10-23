@@ -64,7 +64,7 @@ func nextTurn(me *gameImp) *er.Err {
 	if pd.timer >= 0 {
 		me.unsetTimer(pd.timer)
 	}
-	pd.timer = me.setTimer(2000, prtOnTimeOut)
+	pd.timer = me.setTimer(60000, prtOnTimeOut)
 
 	return me.app.SendAllPlayers(sgs.Command{
 		ID:      fwb.CMD_START_TURN,

@@ -382,8 +382,8 @@ func (me *mockClient) randomActionCmdPayload(action int) (interface{}, bool) {
 		}
 
 	case actn.ACTN_PARTY:
-		log.Print(actn.ActionNames[actn.ACTN_PARTY], " ", data[fwb.PD_PT_WINE])
-		if data[fwb.PD_PT_WINE] >= 2 && data[fwb.PD_PT_MEAT] >= 2 {
+		log.Print(actn.ActionNames[actn.ACTN_PARTY], " ", data[fwb.PD_PT_BEER])
+		if data[fwb.PD_PT_BEER] >= 2 && data[fwb.PD_PT_MEAT] >= 2 {
 			sp = 1
 		}
 
@@ -437,7 +437,7 @@ func (me *mockClient) randomActionCmdPayload(action int) (interface{}, bool) {
 				break
 			}
 			pld.Direction = -1
-			for i := fwb.PD_PT_CEREALS; i <= fwb.PD_PT_WINE; i++ {
+			for i := fwb.PD_PT_CEREALS; i <= fwb.PD_PT_BEER; i++ {
 				if data[i] > 0 {
 					pld.Amount[i] = 1
 				}
@@ -446,7 +446,7 @@ func (me *mockClient) randomActionCmdPayload(action int) (interface{}, bool) {
 			pld.Direction = 1
 			ptp := actn.PtPrices()
 			p := 0
-			for i := fwb.PD_PT_CEREALS; i <= fwb.PD_PT_WINE; i++ {
+			for i := fwb.PD_PT_CEREALS; i <= fwb.PD_PT_BEER; i++ {
 				if rand.Intn(3) > 0 {
 					continue
 				}
