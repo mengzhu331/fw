@@ -110,6 +110,13 @@
   background-size: 100% 100%;
 }
 
+.card-disabled{
+  width: 31%;
+  height: 31%;
+  background-size: 100% 100%;
+  filter: grayscale(100%);
+}
+
 .player-data-row{
   width: 90vw;
   height: 28vh;
@@ -261,4 +268,156 @@
   font-size: 34px;
   background-color: #f5e612;
   color:#700000;
+}
+
+.choose-skill-dialog{
+  position: absolute;
+  width: 90vw;
+  height: 40vh;
+  top:40vh;
+  left: 5vw;
+  background-color: #90b090;
+  display: grid;
+  grid-template-rows: 20% 20% 20% 20%;
+  row-gap: 10px;
+  opacity: 0.9;
+  font-size: 20px;
+  color: #203020;
+  align-items: center;
+  justify-content: center;
+}
+
+.choose-skill-icon{
+  width: 7vw;
+  height: 7vh;
+}
+
+.choose-skill-button{
+  background-color:#2020f0;
+  font-size: 30px;
+  color:#d0d0f0;
+  width: 50vw;
+}
+
+.skill-chosen-info{
+  position: absolute;
+  width: 90vw;
+  height: 20vh;
+  top:40vh;
+  left: 5vw;
+  background-color: #203010;
+  opacity: 0.9;
+  font-size: 30px;
+  color: #9f9ff0;
+  text-align: center;
+}
+
+.highlight-info{
+  color: #20f0f0;
+  font-size: 20px;
+}
+
+.dlg-card{
+  position: absolute;
+  width: 70vw;
+  height: 60vh;
+  top:20vh;
+  left: 15vw;
+  background-color: #707020;
+  font-size: 12px;
+  color: #0f200f;
+  text-align: center;
+}
+
+.icon-dlg{
+  width: 3vw;
+  height: 3vh;
+}
+
+.card-info{
+  display:flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tool-bar{
+  display:grid;
+  align-items: center;
+  grid-template-columns: 5vw 15vw 30vw 15vw 5vw;
+  height: 20vh;
+}
+
+.button-ok{
+  background-color: #306020;
+  color: #30f020;
+  height:4vh;
+}
+
+.button-cancel{
+  background-color: #b02020;
+  color: #f0d0f0;
+  height:7vh;
+}
+
+.button-option{
+  background-color: #104010;
+  color: #f08020;
+  height: 8vh;
+  display:flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.topdown{
+  display: grid;
+  row-gap:10px;
+  grid-template-columns: 100%;
+}
+
+.button-order{
+  background-color: #104010;
+  color: #f08020;
+  height: 8vh;
+  width: 200px;
+  display:flex;
+  align-items: center;
+}
+
+.topdown-order{
+  display: grid;
+  row-gap:10px;
+  grid-template-columns: 50% 50%;
+}
+
+.settlement-dlg{
+  position: absolute;
+  width: 40vw;
+  height: 30vh;
+  top:20vh;
+  left: 15vw;
+  background-color: #707020;
+  font-size: 12px;
+  color: #0f200f;
+  text-align: center;
+}
+
+.gamefinish-screen{
+  position: absolute;
+  width: 60vw;
+  height: 80vh;
+  top: 10vh;
+  left: 20vw;
+  display:flex;
+  row-gap: 10px;
+  flex-flow: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #b09050;
+  color:#201005;
+  font-size: 30px;
+}
+
+.icon-s{
+  width: 40vw;
+  height: 20vh;
 }

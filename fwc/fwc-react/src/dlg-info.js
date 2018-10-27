@@ -20,12 +20,12 @@ class DlgInfo extends Component{
         }
 
         return <div className="dlg-info">
-        <div className="dlg-info-header">{this.props.header}</div>
-        <div className="dlg-info-content">
-        {contenticon}
-        {this.props.content}
-        </div>
-        <div className="dlg-info-buttons">{buttons}</div>       
+            <div className="dlg-info-header">{this.props.header}</div>
+            <div className="dlg-info-content">
+            {contenticon}
+            {this.props.content}
+            </div>
+            <div className="dlg-info-buttons">{buttons}</div>       
         </div>
     }
 }

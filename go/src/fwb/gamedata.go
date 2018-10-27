@@ -63,11 +63,11 @@ type GameData struct {
 	PData     []PlayerData
 }
 
-func (me *PlayerData) init(clientID int, maxPawn int) {
+func (me *PlayerData) init(clientID int, maxPawn int, startGold int) {
 	*me = make(PlayerData, PD_MAX)
 	(*me)[PD_CLIENT_ID] = clientID
 	(*me)[PD_PT_HEART] = 0
-	(*me)[PD_PT_GOLD] = 30
+	(*me)[PD_PT_GOLD] = startGold
 	(*me)[PD_PT_CEREALS] = 0
 	(*me)[PD_PT_MEAT] = 0
 	(*me)[PD_PT_WOOL] = 0
@@ -85,14 +85,14 @@ func (me *PlayerData) init(clientID int, maxPawn int) {
 }
 
 //Init create players data and set all values of game data to default
-func (me *GameData) Init(players []PlayerAgent, maxPawn int, minRounds int) {
+func (me *GameData) Init(players []PlayerAgent, maxPawn int, minRounds int, startGold int) {
 	me.Round = 0
 	me.MaxPawn = maxPawn
 	me.MinRounds = minRounds
 	me.Cards = nil
 	me.PData = make([]PlayerData, len(players))
 	for i := range me.PData {
-		me.PData[i].init(players[i].ID(), maxPawn)
+		me.PData[i].init(players[i].ID(), maxPawn, startGold)
 	}
 }
 

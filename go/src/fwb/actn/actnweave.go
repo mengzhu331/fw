@@ -49,6 +49,7 @@ func (me *actnWeave) getCost() fwb.PlayerData {
 	cost := make(fwb.PlayerData, fwb.PD_MAX)
 	cost[fwb.PD_PAWNS] = -1
 	cost[fwb.PD_PT_WOOL] = me.amount * -2
+	cost[fwb.PD_PT_GOLD] = 5
 	return cost
 }
 

@@ -25,6 +25,7 @@ type timer struct {
 type gameConf struct {
 	MaxPawn   int
 	MinRounds int
+	StartGold int
 }
 
 type gameImp struct {
